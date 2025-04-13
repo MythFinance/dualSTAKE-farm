@@ -1,0 +1,34 @@
+{
+  "name": "@myth-finance/dualstake-farm-sdk",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "dualSTAKE Farm SDK",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "prePublish": "npm run build",
+    "prebuild": "npx --yes  @algorandfoundation/algokit-client-generator generate -a ../dualstakefarm-contracts/smart_contracts/artifacts/dualstakefarm/DualstakeFarm.arc32.json -o src/DualstakeFarmClient.ts ",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Myth Finance",
+  "license": "BSL",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@algorandfoundation/algokit-client-generator": "^4.0.9",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "algosdk": "^2.9.0",
+    "@algorandfoundation/algokit-utils": "^7.0.2"
+  }
+}

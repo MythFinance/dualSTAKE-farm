@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.vscode/**'
+      - '.idea/**'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  dualstakefarm-contracts-validate:
+    name: Run dualstakefarm-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/dualstakefarm-contracts-ci.yaml
+
+  dualstakefarm-contracts-release:
+    name: Run dualstakefarm-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/dualstakefarm-contracts-cd.yaml
+    needs: dualstakefarm-contracts-validate
+
+  dualstakefarm-frontend-validate:
+    name: Run dualstakefarm-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/dualstakefarm-frontend-ci.yaml
+
+  dualstakefarm-frontend-release:
+    name: Run dualstakefarm-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/dualstakefarm-frontend-cd.yaml
+    needs: dualstakefarm-frontend-validate

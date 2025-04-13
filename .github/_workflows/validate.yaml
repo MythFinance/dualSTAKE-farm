@@ -1,0 +1,14 @@
+name: Pull Request validation
+
+on: [pull_request]
+
+
+jobs:
+  dualstakefarm-contracts-ci:
+    name: Run dualstakefarm-contracts validation
+    uses: ./.github/workflows/dualstakefarm-contracts-ci.yaml
+
+  dualstakefarm-frontend-ci:
+    name: Run dualstakefarm-frontend validation
+    uses: ./.github/workflows/dualstakefarm-frontend-ci.yaml
+

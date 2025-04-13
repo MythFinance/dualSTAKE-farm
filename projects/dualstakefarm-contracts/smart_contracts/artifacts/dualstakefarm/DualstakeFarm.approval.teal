@@ -1,0 +1,2057 @@
+#pragma version 11
+#pragma typetrack false
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.__algopy_entrypoint_with_init() -> uint64:
+main:
+    intcblock 1 0 4 30
+    bytecblock "txn_fuel" "manager" 0x151f7c75 0x "ERR:NO FARM" "max_duration_days" "min_duration_blocks" 0x0000000000000000
+    txn ApplicationID
+    bnz main_after_if_else@2
+    // smart_contracts/dualstakefarm/contract.py:70
+    // self.manager = Txn.sender
+    bytec_1 // "manager"
+    txn Sender
+    app_global_put
+    // smart_contracts/dualstakefarm/contract.py:72
+    // self.txn_fuel = UInt64(0)
+    bytec_0 // "txn_fuel"
+    intc_1 // 0
+    app_global_put
+    // smart_contracts/dualstakefarm/contract.py:73
+    // self.max_duration_days = UInt64(DEFAULT_MAX_DURATION_DAYS)
+    bytec 5 // "max_duration_days"
+    pushint 45 // 45
+    app_global_put
+    // smart_contracts/dualstakefarm/contract.py:74
+    // self.min_duration_blocks = UInt64(DEFAULT_MIN_DURATION_BLOCKS)
+    bytec 6 // "min_duration_blocks"
+    intc_3 // 30
+    app_global_put
+
+main_after_if_else@2:
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txn NumAppArgs
+    bz main_bare_routing@19
+    pushbytess 0x850e3afb 0x759fb9aa 0x74585dce 0x0290b820 0x092897d3 0x9a14a84f 0xe83a87ab 0x0d131751 0x7ccbe726 0xe9d827cc 0xe08048fc 0x15d69efc 0xc8a0654b 0xd299f2a0 // method "get_algo_cost(application,asset,uint64)(uint64,uint64,uint64,uint64)", method "get_algo_cost_and_max_duration(application,asset,uint64)(uint64,uint64,uint64,uint64,uint64)", method "create_farm(application,asset,uint64,uint64)void", method "extend_duration_blocks(application,uint64)void", method "extend_amount_per_block(application,uint64)void", method "payout(application,uint64,bool)void", method "noop()void", method "withdraw_fees(uint64)void", method "optout(asset)void", method "update_max_duration_days(uint64)void", method "update_min_duration_blocks(uint64)void", method "get_state(application)(uint64,uint64,uint64,uint64)", method "log_states(uint64[])void", method "log_block_proposers(uint64,uint64)void"
+    txna ApplicationArgs 0
+    match main_get_algo_cost_route@5 main_get_algo_cost_and_max_duration_route@6 main_create_farm_route@7 main_extend_duration_blocks_route@8 main_extend_amount_per_block_route@9 main_payout_route@10 main_noop_route@11 main_withdraw_fees_route@12 main_optout_route@13 main_update_max_duration_days_route@14 main_update_min_duration_blocks_route@15 main_get_state_route@16 main_log_states_route@17 main_log_block_proposers_route@18
+
+main_after_if_else@23:
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    intc_1 // 0
+    return
+
+main_log_block_proposers_route@18:
+    // smart_contracts/dualstakefarm/contract.py:399
+    // @abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txna ApplicationArgs 2
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:399
+    // @abimethod(readonly=True)
+    callsub log_block_proposers
+    intc_0 // 1
+    return
+
+main_log_states_route@17:
+    // smart_contracts/dualstakefarm/contract.py:390
+    // @abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    // smart_contracts/dualstakefarm/contract.py:390
+    // @abimethod(readonly=True)
+    callsub log_states
+    intc_0 // 1
+    return
+
+main_get_state_route@16:
+    // smart_contracts/dualstakefarm/contract.py:386
+    // @abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    // smart_contracts/dualstakefarm/contract.py:386
+    // @abimethod(readonly=True)
+    callsub get_state
+    bytec_2 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+main_update_min_duration_blocks_route@15:
+    // smart_contracts/dualstakefarm/contract.py:381
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:381
+    // @abimethod
+    callsub update_min_duration_blocks
+    intc_0 // 1
+    return
+
+main_update_max_duration_days_route@14:
+    // smart_contracts/dualstakefarm/contract.py:376
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:376
+    // @abimethod
+    callsub update_max_duration_days
+    intc_0 // 1
+    return
+
+main_optout_route@13:
+    // smart_contracts/dualstakefarm/contract.py:365
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Assets
+    // smart_contracts/dualstakefarm/contract.py:365
+    // @abimethod
+    callsub optout
+    intc_0 // 1
+    return
+
+main_withdraw_fees_route@12:
+    // smart_contracts/dualstakefarm/contract.py:351
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:351
+    // @abimethod
+    callsub withdraw_fees
+    intc_0 // 1
+    return
+
+main_noop_route@11:
+    // smart_contracts/dualstakefarm/contract.py:347
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    intc_0 // 1
+    return
+
+main_payout_route@10:
+    // smart_contracts/dualstakefarm/contract.py:278
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    txna ApplicationArgs 2
+    btoi
+    txna ApplicationArgs 3
+    // smart_contracts/dualstakefarm/contract.py:278
+    // @abimethod()
+    callsub payout
+    intc_0 // 1
+    return
+
+main_extend_amount_per_block_route@9:
+    // smart_contracts/dualstakefarm/contract.py:254
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    txna ApplicationArgs 2
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:254
+    // @abimethod
+    callsub extend_amount_per_block
+    intc_0 // 1
+    return
+
+main_extend_duration_blocks_route@8:
+    // smart_contracts/dualstakefarm/contract.py:215
+    // @abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    txna ApplicationArgs 2
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:215
+    // @abimethod
+    callsub extend_duration_blocks
+    intc_0 // 1
+    return
+
+main_create_farm_route@7:
+    // smart_contracts/dualstakefarm/contract.py:162
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    txna ApplicationArgs 2
+    btoi
+    txnas Assets
+    txna ApplicationArgs 3
+    btoi
+    txna ApplicationArgs 4
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:162
+    // @abimethod()
+    callsub create_farm
+    intc_0 // 1
+    return
+
+main_get_algo_cost_and_max_duration_route@6:
+    // smart_contracts/dualstakefarm/contract.py:113
+    // @abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    txna ApplicationArgs 2
+    btoi
+    txnas Assets
+    txna ApplicationArgs 3
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:113
+    // @abimethod(readonly=True)
+    callsub get_algo_cost_and_max_duration
+    bytec_2 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+main_get_algo_cost_route@5:
+    // smart_contracts/dualstakefarm/contract.py:107
+    // @abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txna ApplicationArgs 1
+    btoi
+    txnas Applications
+    txna ApplicationArgs 2
+    btoi
+    txnas Assets
+    txna ApplicationArgs 3
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:107
+    // @abimethod(readonly=True)
+    callsub get_algo_cost
+    bytec_2 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+main_bare_routing@19:
+    // smart_contracts/dualstakefarm/contract.py:64-68
+    // class DualstakeFarm(
+    //     ARC4Contract,
+    //     avm_version=11,
+    //     state_totals=StateTotals(global_uints=40, global_bytes=24),
+    // ):
+    txn OnCompletion
+    switch main___algopy_default_create@22 main_after_if_else@23 main_after_if_else@23 main_after_if_else@23 main_update@20 main_delete@21
+    b main_after_if_else@23
+
+main_delete@21:
+    // smart_contracts/dualstakefarm/contract.py:80
+    // @arc4.baremethod(allow_actions=("DeleteApplication",))
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub delete
+    intc_0 // 1
+    return
+
+main_update@20:
+    // smart_contracts/dualstakefarm/contract.py:76
+    // @arc4.baremethod(allow_actions=("UpdateApplication",))
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub update
+    intc_0 // 1
+    return
+
+main___algopy_default_create@22:
+    txn ApplicationID
+    !
+    assert // can only call when creating
+    intc_0 // 1
+    return
+
+
+// smart_contracts.common.send.axfer(asset: uint64, receiver: bytes, amount: uint64, fee: uint64) -> void:
+axfer:
+    // smart_contracts/common/send.py:18-19
+    // @subroutine
+    // def axfer(asset: Asset, receiver: Account, amount: UInt64, fee: UInt64) -> None:
+    proto 4 0
+    // smart_contracts/common/send.py:20-22
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset, asset_receiver=receiver, asset_amount=amount, fee=fee
+    // ).submit()
+    itxn_begin
+    frame_dig -2
+    itxn_field AssetAmount
+    frame_dig -3
+    itxn_field AssetReceiver
+    frame_dig -4
+    itxn_field XferAsset
+    // smart_contracts/common/send.py:20
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    frame_dig -1
+    itxn_field Fee
+    // smart_contracts/common/send.py:20-22
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset, asset_receiver=receiver, asset_amount=amount, fee=fee
+    // ).submit()
+    itxn_submit
+    // smart_contracts/common/send.py:23
+    // return
+    retsub
+
+
+// smart_contracts.common.send.algo_pay(receiver: bytes, amount: uint64, fee: uint64) -> void:
+algo_pay:
+    // smart_contracts/common/send.py:38-39
+    // @subroutine
+    // def algo_pay(receiver: Account, amount: UInt64, fee: UInt64) -> None:
+    proto 3 0
+    // smart_contracts/common/send.py:40
+    // itxn.Payment(receiver=receiver, amount=amount, fee=fee).submit()
+    itxn_begin
+    frame_dig -2
+    itxn_field Amount
+    frame_dig -3
+    itxn_field Receiver
+    intc_0 // pay
+    itxn_field TypeEnum
+    frame_dig -1
+    itxn_field Fee
+    itxn_submit
+    // smart_contracts/common/send.py:41
+    // return
+    retsub
+
+
+// smart_contracts.common.validate.axfer_amount_exact(axfer_txn_id: uint64, expected_asset: uint64, expected_amount: uint64) -> void:
+axfer_amount_exact:
+    // smart_contracts/common/validate.py:26-29
+    // @subroutine
+    // def axfer_amount_exact(
+    //     axfer_txn_id: UInt64, expected_asset: Asset, expected_amount: UInt64
+    // ) -> None:
+    proto 3 0
+    // smart_contracts/common/validate.py:17
+    // axfer_txn = gtxn.AssetTransferTransaction(axfer_txn_idx)
+    frame_dig -3
+    gtxns TypeEnum
+    intc_2 // axfer
+    ==
+    assert // transaction type is axfer
+    // smart_contracts/common/validate.py:18
+    // custom.ensure(axfer_txn.xfer_asset == expected_asset, S("ERR:AXFER ID"))
+    frame_dig -3
+    gtxns XferAsset
+    frame_dig -2
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz axfer_amount_exact_after_if_else@3
+    // smart_contracts/common/validate.py:18
+    // custom.ensure(axfer_txn.xfer_asset == expected_asset, S("ERR:AXFER ID"))
+    pushbytes "ERR:AXFER ID"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+axfer_amount_exact_after_if_else@3:
+    // smart_contracts/common/validate.py:20
+    // axfer_txn.asset_receiver == Global.current_application_address,
+    frame_dig -3
+    gtxns AssetReceiver
+    global CurrentApplicationAddress
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz axfer_amount_exact_after_if_else@7
+    // smart_contracts/common/validate.py:21
+    // S("ERR:AXFER RCV"),
+    pushbytes "ERR:AXFER RCV"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+axfer_amount_exact_after_if_else@7:
+    // smart_contracts/common/validate.py:23
+    // return axfer_txn.asset_amount
+    frame_dig -3
+    gtxns AssetAmount
+    // smart_contracts/common/validate.py:31
+    // axfer(axfer_txn_id, expected_asset) >= expected_amount, S("ERR:AXFER AMT")
+    frame_dig -1
+    >=
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz axfer_amount_exact_after_if_else@11
+    // smart_contracts/common/validate.py:31
+    // axfer(axfer_txn_id, expected_asset) >= expected_amount, S("ERR:AXFER AMT")
+    pushbytes "ERR:AXFER AMT"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+axfer_amount_exact_after_if_else@11:
+    retsub
+
+
+// smart_contracts.common.validate.payment_amount_exact(payment_txn_idx: uint64, expected_amount: uint64) -> void:
+payment_amount_exact:
+    // smart_contracts/common/validate.py:50-51
+    // @subroutine
+    // def payment_amount_exact(payment_txn_idx: UInt64, expected_amount: UInt64) -> None:
+    proto 2 0
+    // smart_contracts/common/validate.py:37
+    // pay_txn = gtxn.PaymentTransaction(txn_idx)
+    frame_dig -2
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/common/validate.py:39
+    // pay_txn.receiver == Global.current_application_address,
+    frame_dig -2
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz payment_amount_exact_after_if_else@3
+    // smart_contracts/common/validate.py:40
+    // S("ERR:PAY RCV"),
+    pushbytes "ERR:PAY RCV"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+payment_amount_exact_after_if_else@3:
+    // smart_contracts/common/validate.py:42
+    // return pay_txn.amount
+    frame_dig -2
+    gtxns Amount
+    // smart_contracts/common/validate.py:52
+    // custom.ensure(payment(payment_txn_idx) == expected_amount, S("ERR:PAY AMT"))
+    frame_dig -1
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz payment_amount_exact_after_if_else@7
+    // smart_contracts/common/validate.py:52
+    // custom.ensure(payment(payment_txn_idx) == expected_amount, S("ERR:PAY AMT"))
+    pushbytes "ERR:PAY AMT"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+payment_amount_exact_after_if_else@7:
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.update() -> void:
+update:
+    // smart_contracts/dualstakefarm/contract.py:76-77
+    // @arc4.baremethod(allow_actions=("UpdateApplication",))
+    // def update(self) -> None:
+    proto 0 0
+    // smart_contracts/dualstakefarm/contract.py:78
+    // self.ensure_manager_caller()
+    callsub ensure_manager_caller
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.delete() -> void:
+delete:
+    // smart_contracts/dualstakefarm/contract.py:80-81
+    // @arc4.baremethod(allow_actions=("DeleteApplication",))
+    // def delete(self) -> None:
+    proto 0 0
+    // smart_contracts/dualstakefarm/contract.py:82
+    // self.ensure_manager_caller()
+    callsub ensure_manager_caller
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.calculate_algo_cost(recipient_app: uint64, farm_asset: uint64, duration_blocks: uint64) -> bytes:
+calculate_algo_cost:
+    // smart_contracts/dualstakefarm/contract.py:84-87
+    // @subroutine
+    // def calculate_algo_cost(
+    //     self, recipient_app: Application, farm_asset: Asset, duration_blocks: UInt64
+    // ) -> AlgoCost:
+    proto 3 1
+    // smart_contracts/dualstakefarm/contract.py:90
+    // if Global.current_application_address.is_opted_in(farm_asset)
+    global CurrentApplicationAddress
+    frame_dig -2
+    asset_holding_get AssetBalance
+    bury 1
+    // smart_contracts/dualstakefarm/contract.py:89-91
+    // UInt64(0)
+    // if Global.current_application_address.is_opted_in(farm_asset)
+    // else Global.asset_opt_in_min_balance
+    bz calculate_algo_cost_ternary_false@2
+    // smart_contracts/dualstakefarm/contract.py:89
+    // UInt64(0)
+    intc_1 // 0
+
+calculate_algo_cost_ternary_merge@3:
+    // smart_contracts/dualstakefarm/contract.py:93
+    // log(optin_mbr)
+    dup
+    itob
+    dup
+    log
+    // smart_contracts/dualstakefarm/contract.py:95
+    // UInt64(0) if recipient_app in self.farms else UInt64(5 * 8 * 400 + 2500)
+    frame_dig -3
+    itob
+    box_len
+    bury 1
+    pushint 18500 // 18500
+    intc_1 // 0
+    // smart_contracts/dualstakefarm/contract.py:94-96
+    // box_mbr = (
+    //     UInt64(0) if recipient_app in self.farms else UInt64(5 * 8 * 400 + 2500)
+    // )  # box size is 1+4 uint64s
+    uncover 2
+    // smart_contracts/dualstakefarm/contract.py:95
+    // UInt64(0) if recipient_app in self.farms else UInt64(5 * 8 * 400 + 2500)
+    select
+    // smart_contracts/dualstakefarm/contract.py:97
+    // log(box_mbr)
+    dup
+    itob
+    dup
+    log
+    // smart_contracts/dualstakefarm/contract.py:410
+    // return UInt64(FARM_ALGO_COST_PER_BLOCK) * Global.min_txn_fee
+    pushint 10 // 10
+    global MinTxnFee
+    *
+    // smart_contracts/dualstakefarm/contract.py:98
+    // farm_costs = self.get_farm_algo_cost_per_block() * duration_blocks
+    frame_dig -1
+    *
+    // smart_contracts/dualstakefarm/contract.py:99
+    // log(farm_costs)
+    dup
+    itob
+    dup
+    log
+    // smart_contracts/dualstakefarm/contract.py:101
+    // algo_cost=arc4.UInt64(optin_mbr + box_mbr + farm_costs),
+    uncover 5
+    uncover 4
+    +
+    uncover 2
+    +
+    itob
+    // smart_contracts/dualstakefarm/contract.py:100-105
+    // return AlgoCost(
+    //     algo_cost=arc4.UInt64(optin_mbr + box_mbr + farm_costs),
+    //     farm_cost=arc4.UInt64(farm_costs),
+    //     box_cost=arc4.UInt64(box_mbr),
+    //     optin_cost=arc4.UInt64(optin_mbr),
+    // )
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    retsub
+
+calculate_algo_cost_ternary_false@2:
+    // smart_contracts/dualstakefarm/contract.py:91
+    // else Global.asset_opt_in_min_balance
+    global AssetOptInMinBalance
+    b calculate_algo_cost_ternary_merge@3
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.get_algo_cost(recipient_app: uint64, farm_asset: uint64, duration_blocks: uint64) -> bytes:
+get_algo_cost:
+    // smart_contracts/dualstakefarm/contract.py:107-110
+    // @abimethod(readonly=True)
+    // def get_algo_cost(
+    //     self, recipient_app: Application, farm_asset: Asset, duration_blocks: UInt64
+    // ) -> AlgoCost:
+    proto 3 1
+    // smart_contracts/dualstakefarm/contract.py:111
+    // return self.calculate_algo_cost(recipient_app, farm_asset, duration_blocks)
+    frame_dig -3
+    frame_dig -2
+    frame_dig -1
+    callsub calculate_algo_cost
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.get_algo_cost_and_max_duration(recipient_app: uint64, farm_asset: uint64, duration_blocks: uint64) -> bytes:
+get_algo_cost_and_max_duration:
+    // smart_contracts/dualstakefarm/contract.py:113-116
+    // @abimethod(readonly=True)
+    // def get_algo_cost_and_max_duration(
+    //     self, recipient_app: Application, farm_asset: Asset, duration_blocks: UInt64
+    // ) -> AlgoCostAndMaxDuration:
+    proto 3 1
+    // smart_contracts/dualstakefarm/contract.py:117-119
+    // algo_cost_struct = self.calculate_algo_cost(
+    //     recipient_app, farm_asset, duration_blocks
+    // )
+    frame_dig -3
+    frame_dig -2
+    frame_dig -1
+    callsub calculate_algo_cost
+    // smart_contracts/dualstakefarm/contract.py:121
+    // algo_cost=algo_cost_struct.algo_cost,
+    dup
+    extract 0 8 // on error: Index access is out of bounds
+    // smart_contracts/dualstakefarm/contract.py:123
+    // optin_cost=algo_cost_struct.optin_cost,
+    dig 1
+    extract 8 8 // on error: Index access is out of bounds
+    // smart_contracts/dualstakefarm/contract.py:122
+    // box_cost=algo_cost_struct.box_cost,
+    dig 2
+    extract 16 8 // on error: Index access is out of bounds
+    // smart_contracts/dualstakefarm/contract.py:124
+    // farm_cost=algo_cost_struct.farm_cost,
+    uncover 3
+    extract 24 8 // on error: Index access is out of bounds
+    // smart_contracts/dualstakefarm/contract.py:125
+    // max_duration=arc4.UInt64(self.get_max_duration(recipient_app)),
+    frame_dig -3
+    callsub get_max_duration
+    itob
+    // smart_contracts/dualstakefarm/contract.py:120-126
+    // return AlgoCostAndMaxDuration(
+    //     algo_cost=algo_cost_struct.algo_cost,
+    //     box_cost=algo_cost_struct.box_cost,
+    //     optin_cost=algo_cost_struct.optin_cost,
+    //     farm_cost=algo_cost_struct.farm_cost,
+    //     max_duration=arc4.UInt64(self.get_max_duration(recipient_app)),
+    // )
+    uncover 4
+    uncover 4
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.get_max_duration(recipient_app: uint64) -> uint64:
+get_max_duration:
+    // smart_contracts/dualstakefarm/contract.py:128-129
+    // @subroutine
+    // def get_max_duration(self, recipient_app: Application) -> UInt64:
+    proto 1 1
+    bytec_3 // ""
+    dup
+    // smart_contracts/dualstakefarm/contract.py:134
+    // ds_balance = BigUInt(recipient_app.address.balance)
+    frame_dig -1
+    app_params_get AppAddress
+    assert // application exists
+    acct_params_get AcctBalance
+    assert // account funded
+    itob
+    // smart_contracts/dualstakefarm/contract.py:135
+    // total_online_stake = BigUInt(op.online_stake())
+    online_stake
+    itob
+    // smart_contracts/common/round_time.py:23
+    // first_accessible = math.safe_subtract(Txn.last_valid, UInt64(1001), UInt64(1))
+    txn LastValid
+    intc_0 // 1
+    txn LastValid
+    pushint 1001 // 1001
+    // smart_contracts/common/math.py:14
+    // return a - b if a > b else default
+    >
+    bz get_max_duration_ternary_false@3
+    frame_dig 4
+    // smart_contracts/common/round_time.py:23
+    // first_accessible = math.safe_subtract(Txn.last_valid, UInt64(1001), UInt64(1))
+    pushint 1001 // 1001
+    // smart_contracts/common/math.py:14
+    // return a - b if a > b else default
+    -
+    frame_bury 0
+
+get_max_duration_ternary_merge@4:
+    // smart_contracts/common/round_time.py:24
+    // last_accessible = Txn.first_valid - UInt64(1)
+    txn FirstValid
+    intc_0 // 1
+    -
+    frame_bury 1
+    // smart_contracts/common/round_time.py:25-26
+    // # TODO fallback for localnet? if first_accessible == 1 then skip?
+    // if first_accessible > UInt64(1):
+    frame_dig 0
+    intc_0 // 1
+    >
+    bz get_max_duration_after_if_else@6
+    // smart_contracts/common/round_time.py:28
+    // last_accessible - first_accessible >= min_round_sample,
+    frame_dig 1
+    frame_dig 0
+    -
+    // smart_contracts/dualstakefarm/contract.py:136-137
+    // # round_time = (dt == time2 - time1) / (dr == block2 - block1)
+    // rt_fraction = round_time.get_round_time(UInt64(MIN_ROUND_SAMPLE))
+    pushint 500 // 500
+    // smart_contracts/common/round_time.py:28
+    // last_accessible - first_accessible >= min_round_sample,
+    >=
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz get_max_duration_after_if_else@6
+    // smart_contracts/common/round_time.py:29
+    // S("ERR:BLK RNGE"),
+    pushbytes "ERR:BLK RNGE"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+get_max_duration_after_if_else@6:
+    // smart_contracts/common/round_time.py:31
+    // block_delta = last_accessible - first_accessible
+    frame_dig 1
+    dup
+    frame_dig 0
+    dup
+    cover 3
+    -
+    // smart_contracts/common/round_time.py:32
+    // ts_delta = op.Block.blk_timestamp(last_accessible) - op.Block.blk_timestamp(
+    swap
+    block BlkTimestamp
+    // smart_contracts/common/round_time.py:32-34
+    // ts_delta = op.Block.blk_timestamp(last_accessible) - op.Block.blk_timestamp(
+    //     first_accessible
+    // )
+    uncover 2
+    block BlkTimestamp
+    -
+    // smart_contracts/dualstakefarm/contract.py:140-141
+    // UInt64(86400)
+    // * UInt64(DEFAULT_MAX_DURATION_DAYS)
+    pushint 3888000 // 3888000
+    // smart_contracts/dualstakefarm/contract.py:140-142
+    // UInt64(86400)
+    // * UInt64(DEFAULT_MAX_DURATION_DAYS)
+    // * rt_fraction.dr
+    uncover 2
+    *
+    // smart_contracts/dualstakefarm/contract.py:140-143
+    // UInt64(86400)
+    // * UInt64(DEFAULT_MAX_DURATION_DAYS)
+    // * rt_fraction.dr
+    // // rt_fraction.dt
+    swap
+    /
+    // smart_contracts/dualstakefarm/contract.py:138-144
+    // # blocks produced = 45 days in seconds / round_time
+    // blocks_produced = BigUInt(
+    //     UInt64(86400)
+    //     * UInt64(DEFAULT_MAX_DURATION_DAYS)
+    //     * rt_fraction.dr
+    //     // rt_fraction.dt
+    // )
+    itob
+    // smart_contracts/dualstakefarm/contract.py:145-147
+    // # max duration = percentage_of_stake * blocks produced in 45 days
+    // # = own_stake * blocks_produced / total_stake
+    // max_duration = ds_balance * blocks_produced // total_online_stake
+    frame_dig 2
+    b*
+    frame_dig 3
+    b/
+    // smart_contracts/dualstakefarm/contract.py:149
+    // UInt64(DEFAULT_MIN_DURATION_BLOCKS), op.btoi(max_duration.bytes)
+    btoi
+    intc_3 // 30
+    // smart_contracts/common/math.py:9
+    // return a if a > b else b
+    dig 1
+    >
+    // smart_contracts/dualstakefarm/contract.py:149
+    // UInt64(DEFAULT_MIN_DURATION_BLOCKS), op.btoi(max_duration.bytes)
+    intc_3 // 30
+    // smart_contracts/common/math.py:9
+    // return a if a > b else b
+    swap
+    select
+    // smart_contracts/dualstakefarm/contract.py:148-150
+    // return math.max(
+    //     UInt64(DEFAULT_MIN_DURATION_BLOCKS), op.btoi(max_duration.bytes)
+    // )
+    frame_bury 0
+    retsub
+
+get_max_duration_ternary_false@3:
+    frame_dig 5
+    frame_bury 0
+    b get_max_duration_ternary_merge@4
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.validate_duration(recipient_app: uint64, duration_blocks: uint64) -> void:
+validate_duration:
+    // smart_contracts/dualstakefarm/contract.py:152-155
+    // @subroutine
+    // def validate_duration(
+    //     self, recipient_app: Application, duration_blocks: UInt64
+    // ) -> None:
+    proto 2 0
+    // smart_contracts/dualstakefarm/contract.py:156
+    // allowed_duration = self.get_max_duration(recipient_app)
+    frame_dig -2
+    callsub get_max_duration
+    dup
+    // smart_contracts/dualstakefarm/contract.py:157
+    // if allowed_duration < duration_blocks:
+    frame_dig -1
+    <
+    bz validate_duration_after_if_else@2
+    // smart_contracts/dualstakefarm/contract.py:158
+    // log(allowed_duration)
+    frame_dig 0
+    itob
+    log
+    // smart_contracts/dualstakefarm/contract.py:159
+    // log("ERR:DURATION")
+    pushbytes "ERR:DURATION"
+    log
+    // smart_contracts/dualstakefarm/contract.py:160
+    // op.err()
+    err
+
+validate_duration_after_if_else@2:
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.create_farm(recipient_app: uint64, farm_asset: uint64, amount_per_block: uint64, duration_blocks: uint64) -> void:
+create_farm:
+    // smart_contracts/dualstakefarm/contract.py:162-169
+    // @abimethod()
+    // def create_farm(
+    //     self,
+    //     recipient_app: Application,
+    //     farm_asset: Asset,
+    //     amount_per_block: UInt64,
+    //     duration_blocks: UInt64,
+    // ) -> None:
+    proto 4 0
+    // smart_contracts/dualstakefarm/contract.py:170-171
+    // # reject if farm exists already
+    // custom.ensure(recipient_app not in self.farms, S("ERR:EXISTS"))
+    frame_dig -4
+    itob
+    dup
+    box_len
+    bury 1
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bz create_farm_after_if_else@7
+    // smart_contracts/dualstakefarm/contract.py:170-171
+    // # reject if farm exists already
+    // custom.ensure(recipient_app not in self.farms, S("ERR:EXISTS"))
+    pushbytes "ERR:EXISTS"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+create_farm_after_if_else@7:
+    // smart_contracts/dualstakefarm/contract.py:173
+    // custom.ensure(Txn.group_index > 0, S("ERR:NO PAY"))
+    txn GroupIndex
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz create_farm_after_if_else@11
+    // smart_contracts/dualstakefarm/contract.py:173
+    // custom.ensure(Txn.group_index > 0, S("ERR:NO PAY"))
+    pushbytes "ERR:NO PAY"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+create_farm_after_if_else@11:
+    // smart_contracts/dualstakefarm/contract.py:177
+    // Txn.group_index - UInt64(1),  # previous txn
+    txn GroupIndex
+    intc_0 // 1
+    -
+    // smart_contracts/dualstakefarm/contract.py:178-180
+    // self.calculate_algo_cost(
+    //     recipient_app, farm_asset, duration_blocks
+    // ).algo_cost.native,
+    frame_dig -4
+    frame_dig -3
+    frame_dig -1
+    callsub calculate_algo_cost
+    extract 0 8 // on error: Index access is out of bounds
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:175-181
+    // # validate ALGO payment. positioned before so it can cover optin and box MBR
+    // validate.payment_amount_exact(
+    //     Txn.group_index - UInt64(1),  # previous txn
+    //     self.calculate_algo_cost(
+    //         recipient_app, farm_asset, duration_blocks
+    //     ).algo_cost.native,
+    // )
+    callsub payment_amount_exact
+    // smart_contracts/dualstakefarm/contract.py:187
+    // Txn.group_index + UInt64(1),  # next txn
+    txn GroupIndex
+    intc_0 // 1
+    +
+    // smart_contracts/dualstakefarm/contract.py:189
+    // amount_per_block * duration_blocks,
+    frame_dig -2
+    frame_dig -1
+    *
+    // smart_contracts/dualstakefarm/contract.py:183-190
+    // # validate ASA deposit. positioned after app call so we can opt in if needed
+    // # don't do as I do, if you use this pattern you can get exploited if another method validates an asa payment at (-1)
+    // # and if you do do as I do, ensure all your axfers are expected at +1
+    // validate.axfer_amount_exact(
+    //     Txn.group_index + UInt64(1),  # next txn
+    //     farm_asset,
+    //     amount_per_block * duration_blocks,
+    // )
+    frame_dig -3
+    swap
+    callsub axfer_amount_exact
+    // smart_contracts/dualstakefarm/contract.py:192
+    // self.validate_duration(recipient_app, duration_blocks)
+    frame_dig -4
+    frame_dig -1
+    callsub validate_duration
+    // smart_contracts/dualstakefarm/contract.py:194-195
+    // # Check recipient app state
+    // recipient_asa_id, exists = op.AppGlobal.get_ex_uint64(recipient_app, b"asa_id")
+    frame_dig -4
+    pushbytes 0x6173615f6964
+    app_global_get_ex
+    pop
+    // smart_contracts/dualstakefarm/contract.py:196
+    // custom.ensure(recipient_asa_id == farm_asset.id, S("ERR:APP ASA"))
+    frame_dig -3
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz create_farm_after_if_else@15
+    // smart_contracts/dualstakefarm/contract.py:196
+    // custom.ensure(recipient_asa_id == farm_asset.id, S("ERR:APP ASA"))
+    pushbytes "ERR:APP ASA"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+create_farm_after_if_else@15:
+    // smart_contracts/dualstakefarm/contract.py:198
+    // log(self.get_max_duration(recipient_app))
+    frame_dig -4
+    callsub get_max_duration
+    itob
+    log
+    // smart_contracts/dualstakefarm/contract.py:200-201
+    // # optin if needed
+    // if not Global.current_application_address.is_opted_in(farm_asset):
+    global CurrentApplicationAddress
+    frame_dig -3
+    asset_holding_get AssetBalance
+    bury 1
+    bnz create_farm_after_if_else@2
+    // smart_contracts/common/send.py:6
+    // axfer(asset, Global.current_application_address, UInt64(0), fee)
+    frame_dig -3
+    global CurrentApplicationAddress
+    intc_1 // 0
+    // smart_contracts/dualstakefarm/contract.py:202
+    // send.optin(farm_asset, UInt64(0))
+    dup
+    // smart_contracts/common/send.py:6
+    // axfer(asset, Global.current_application_address, UInt64(0), fee)
+    callsub axfer
+
+create_farm_after_if_else@2:
+    // smart_contracts/dualstakefarm/contract.py:206
+    // farm_asset=arc4.UInt64(farm_asset.id),
+    frame_dig -3
+    itob
+    // smart_contracts/dualstakefarm/contract.py:207
+    // amount_per_block=arc4.UInt64(amount_per_block),
+    frame_dig -2
+    itob
+    // smart_contracts/dualstakefarm/contract.py:208
+    // remaining_duration_blocks=arc4.UInt64(duration_blocks),
+    frame_dig -1
+    itob
+    // smart_contracts/dualstakefarm/contract.py:209
+    // last_block_paid=arc4.UInt64(Global.round + 1),
+    global Round
+    intc_0 // 1
+    +
+    itob
+    // smart_contracts/dualstakefarm/contract.py:204-210
+    // # create farm box entry
+    // self.farms[recipient_app] = FarmState(
+    //     farm_asset=arc4.UInt64(farm_asset.id),
+    //     amount_per_block=arc4.UInt64(amount_per_block),
+    //     remaining_duration_blocks=arc4.UInt64(duration_blocks),
+    //     last_block_paid=arc4.UInt64(Global.round + 1),
+    // )
+    uncover 3
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    frame_dig 0
+    swap
+    box_put
+    // smart_contracts/dualstakefarm/contract.py:212-213
+    // # add to global txn fuel
+    // self.txn_fuel = self.txn_fuel + self.get_txn_fuel_per_block() * duration_blocks
+    intc_1 // 0
+    bytec_0 // "txn_fuel"
+    app_global_get_ex
+    assert // check self.txn_fuel exists
+    // smart_contracts/dualstakefarm/contract.py:414
+    // return UInt64(TXN_FUEL_PER_BLOCK) * Global.min_txn_fee
+    pushint 7 // 7
+    global MinTxnFee
+    *
+    // smart_contracts/dualstakefarm/contract.py:212-213
+    // # add to global txn fuel
+    // self.txn_fuel = self.txn_fuel + self.get_txn_fuel_per_block() * duration_blocks
+    frame_dig -1
+    *
+    +
+    bytec_0 // "txn_fuel"
+    swap
+    app_global_put
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.extend_duration_blocks(recipient_app: uint64, duration_blocks: uint64) -> void:
+extend_duration_blocks:
+    // smart_contracts/dualstakefarm/contract.py:215-220
+    // @abimethod
+    // def extend_duration_blocks(
+    //     self,
+    //     recipient_app: Application,
+    //     duration_blocks: UInt64,
+    // ) -> None:
+    proto 2 0
+    // smart_contracts/dualstakefarm/contract.py:221
+    // custom.ensure(recipient_app in self.farms, S("ERR:NO FARM"))
+    frame_dig -2
+    itob
+    dup
+    box_len
+    bury 1
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz extend_duration_blocks_after_if_else@3
+    // smart_contracts/dualstakefarm/contract.py:221
+    // custom.ensure(recipient_app in self.farms, S("ERR:NO FARM"))
+    bytec 4 // "ERR:NO FARM"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+extend_duration_blocks_after_if_else@3:
+    // smart_contracts/dualstakefarm/contract.py:223
+    // state = self.farms[recipient_app].copy()
+    frame_dig 0
+    dup
+    box_get
+    assert // check self.farms entry exists
+    // smart_contracts/dualstakefarm/contract.py:224
+    // farm_asset = Asset(state.farm_asset.native)
+    dup
+    extract 0 8 // on error: Index access is out of bounds
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:228
+    // Txn.group_index - UInt64(1),  # previous txn
+    txn GroupIndex
+    intc_0 // 1
+    -
+    // smart_contracts/dualstakefarm/contract.py:229-231
+    // self.calculate_algo_cost(
+    //     recipient_app, farm_asset, duration_blocks
+    // ).algo_cost.native,
+    frame_dig -2
+    dig 2
+    frame_dig -1
+    callsub calculate_algo_cost
+    extract 0 8 // on error: Index access is out of bounds
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:226-232
+    // # validate ALGO and ASA payments. keeping create_farm before/after structure for simplicity
+    // validate.payment_amount_exact(
+    //     Txn.group_index - UInt64(1),  # previous txn
+    //     self.calculate_algo_cost(
+    //         recipient_app, farm_asset, duration_blocks
+    //     ).algo_cost.native,
+    // )
+    callsub payment_amount_exact
+    // smart_contracts/dualstakefarm/contract.py:235
+    // Txn.group_index + UInt64(1),  # next txn
+    txn GroupIndex
+    intc_0 // 1
+    +
+    // smart_contracts/dualstakefarm/contract.py:237
+    // state.amount_per_block.native * duration_blocks,
+    dig 2
+    extract 8 8 // on error: Index access is out of bounds
+    btoi
+    frame_dig -1
+    *
+    // smart_contracts/dualstakefarm/contract.py:234-238
+    // validate.axfer_amount_exact(
+    //     Txn.group_index + UInt64(1),  # next txn
+    //     farm_asset,
+    //     state.amount_per_block.native * duration_blocks,
+    // )
+    swap
+    cover 2
+    callsub axfer_amount_exact
+    // smart_contracts/dualstakefarm/contract.py:241
+    // recipient_app, state.remaining_duration_blocks.native + duration_blocks
+    dup
+    extract 16 8 // on error: Index access is out of bounds
+    btoi
+    frame_dig -1
+    +
+    // smart_contracts/dualstakefarm/contract.py:240-242
+    // self.validate_duration(
+    //     recipient_app, state.remaining_duration_blocks.native + duration_blocks
+    // )
+    frame_dig -2
+    dig 1
+    callsub validate_duration
+    // smart_contracts/dualstakefarm/contract.py:244-247
+    // # adjust remaining blocks in state
+    // state.remaining_duration_blocks = arc4.UInt64(
+    //     state.remaining_duration_blocks.native + duration_blocks
+    // )
+    itob
+    replace2 16
+    // smart_contracts/dualstakefarm/contract.py:248-249
+    // # save state
+    // self.farms[recipient_app] = state.copy()
+    box_put
+    // smart_contracts/dualstakefarm/contract.py:251-252
+    // # adjust txn fuel remaining
+    // self.txn_fuel = self.txn_fuel + self.get_txn_fuel_per_block() * duration_blocks
+    intc_1 // 0
+    bytec_0 // "txn_fuel"
+    app_global_get_ex
+    assert // check self.txn_fuel exists
+    // smart_contracts/dualstakefarm/contract.py:414
+    // return UInt64(TXN_FUEL_PER_BLOCK) * Global.min_txn_fee
+    pushint 7 // 7
+    global MinTxnFee
+    *
+    // smart_contracts/dualstakefarm/contract.py:251-252
+    // # adjust txn fuel remaining
+    // self.txn_fuel = self.txn_fuel + self.get_txn_fuel_per_block() * duration_blocks
+    frame_dig -1
+    *
+    +
+    bytec_0 // "txn_fuel"
+    swap
+    app_global_put
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.extend_amount_per_block(recipient_app: uint64, amount_per_block: uint64) -> void:
+extend_amount_per_block:
+    // smart_contracts/dualstakefarm/contract.py:254-259
+    // @abimethod
+    // def extend_amount_per_block(
+    //     self,
+    //     recipient_app: Application,
+    //     amount_per_block: UInt64,
+    // ) -> None:
+    proto 2 0
+    // smart_contracts/dualstakefarm/contract.py:260
+    // custom.ensure(recipient_app in self.farms, S("ERR:NO FARM"))
+    frame_dig -2
+    itob
+    dup
+    box_len
+    bury 1
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz extend_amount_per_block_after_if_else@3
+    // smart_contracts/dualstakefarm/contract.py:260
+    // custom.ensure(recipient_app in self.farms, S("ERR:NO FARM"))
+    bytec 4 // "ERR:NO FARM"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+extend_amount_per_block_after_if_else@3:
+    // smart_contracts/dualstakefarm/contract.py:262
+    // state = self.farms[recipient_app].copy()
+    frame_dig 0
+    dup
+    box_get
+    assert // check self.farms entry exists
+    // smart_contracts/dualstakefarm/contract.py:263
+    // farm_asset = Asset(state.farm_asset.native)
+    dup
+    extract 0 8 // on error: Index access is out of bounds
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:266
+    // Txn.group_index + UInt64(1),  # next txn
+    txn GroupIndex
+    intc_0 // 1
+    +
+    // smart_contracts/dualstakefarm/contract.py:268
+    // amount_per_block * state.remaining_duration_blocks.native,
+    dig 2
+    extract 16 8 // on error: Index access is out of bounds
+    btoi
+    frame_dig -1
+    *
+    // smart_contracts/dualstakefarm/contract.py:265-269
+    // validate.axfer_amount_exact(
+    //     Txn.group_index + UInt64(1),  # next txn
+    //     farm_asset,
+    //     amount_per_block * state.remaining_duration_blocks.native,
+    // )
+    swap
+    cover 2
+    callsub axfer_amount_exact
+    // smart_contracts/dualstakefarm/contract.py:273
+    // state.amount_per_block.native + amount_per_block
+    dup
+    extract 8 8 // on error: Index access is out of bounds
+    btoi
+    frame_dig -1
+    +
+    // smart_contracts/dualstakefarm/contract.py:271-274
+    // # adjust amount per block in state
+    // state.amount_per_block = arc4.UInt64(
+    //     state.amount_per_block.native + amount_per_block
+    // )
+    itob
+    replace2 8
+    // smart_contracts/dualstakefarm/contract.py:275-276
+    // # save state
+    // self.farms[recipient_app] = state.copy()
+    box_put
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.payout(recipient_app: uint64, block_round: uint64, call_swap: bytes) -> void:
+payout:
+    // smart_contracts/dualstakefarm/contract.py:278-281
+    // @abimethod()
+    // def payout(
+    //     self, recipient_app: Application, block_round: UInt64, call_swap: arc4.Bool
+    // ) -> None:
+    proto 3 0
+    intc_1 // 0
+    dup
+    bytec_3 // ""
+    // smart_contracts/dualstakefarm/contract.py:282-283
+    // # ensure farm exists
+    // custom.ensure(recipient_app in self.farms, S("ERR:NO FARM"))
+    frame_dig -3
+    itob
+    dup
+    box_len
+    bury 1
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz payout_after_if_else@23
+    // smart_contracts/dualstakefarm/contract.py:282-283
+    // # ensure farm exists
+    // custom.ensure(recipient_app in self.farms, S("ERR:NO FARM"))
+    bytec 4 // "ERR:NO FARM"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+payout_after_if_else@23:
+    // smart_contracts/dualstakefarm/contract.py:285-286
+    // # load farm state
+    // state = self.farms[recipient_app].copy()
+    frame_dig 3
+    box_get
+    swap
+    dup
+    cover 2
+    frame_bury 0
+    assert // check self.farms entry exists
+    // smart_contracts/dualstakefarm/contract.py:288-290
+    // # ensure we have remaining blocks to pay out in this farm
+    // # if not, delete farm state and return
+    // if state.remaining_duration_blocks == 0:
+    extract 16 8 // on error: Index access is out of bounds
+    bytec 7 // 0x0000000000000000
+    b==
+    bz payout_after_if_else@2
+    // smart_contracts/dualstakefarm/contract.py:291
+    // del self.farms[recipient_app]
+    frame_dig 3
+    box_del
+    pop
+    // smart_contracts/dualstakefarm/contract.py:292-293
+    // # TODO Emit event?
+    // log("expired")
+    pushbytes "expired"
+    log
+    // smart_contracts/dualstakefarm/contract.py:294
+    // return
+    retsub
+
+payout_after_if_else@2:
+    // smart_contracts/dualstakefarm/contract.py:296-297
+    // # ensure our block is after the last block we have paid
+    // custom.ensure(block_round > state.last_block_paid, S("ERR:PAST"))
+    frame_dig 0
+    extract 24 8 // on error: Index access is out of bounds
+    frame_dig -2
+    itob
+    dup
+    frame_bury 1
+    b<
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz payout_after_if_else@15
+    // smart_contracts/dualstakefarm/contract.py:296-297
+    // # ensure our block is after the last block we have paid
+    // custom.ensure(block_round > state.last_block_paid, S("ERR:PAST"))
+    pushbytes "ERR:PAST"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+payout_after_if_else@15:
+    // smart_contracts/dualstakefarm/contract.py:301
+    // op.Block.blk_proposer(block_round) == recipient_app.address,
+    frame_dig -2
+    block BlkProposer
+    frame_dig -3
+    app_params_get AppAddress
+    assert // application exists
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz payout_after_if_else@19
+    // smart_contracts/dualstakefarm/contract.py:302
+    // S("ERR:NOT BLK PROP"),
+    pushbytes "ERR:NOT BLK PROP"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+payout_after_if_else@19:
+    // smart_contracts/dualstakefarm/contract.py:308-309
+    // # call swap if needed
+    // if call_swap:
+    frame_dig -1
+    pushbytes 0x00
+    !=
+    bz payout_after_if_else@5
+    // smart_contracts/dualstakefarm/contract.py:310-314
+    // abi_call(
+    //     "swap_or_fail()void",
+    //     app_id=recipient_app,
+    //     fee=Global.min_txn_fee,
+    // )
+    itxn_begin
+    // smart_contracts/dualstakefarm/contract.py:313
+    // fee=Global.min_txn_fee,
+    global MinTxnFee
+    frame_dig -3
+    itxn_field ApplicationID
+    // smart_contracts/dualstakefarm/contract.py:310-314
+    // abi_call(
+    //     "swap_or_fail()void",
+    //     app_id=recipient_app,
+    //     fee=Global.min_txn_fee,
+    // )
+    pushbytes 0x93239802 // method "swap_or_fail()void"
+    itxn_field ApplicationArgs
+    pushint 6 // appl
+    itxn_field TypeEnum
+    itxn_field Fee
+    itxn_submit
+
+payout_after_if_else@5:
+    // smart_contracts/dualstakefarm/contract.py:316-317
+    // # subtract txn fuel regardless of call swap or not
+    // txn_fuel_spent = txn_fuel_spent + Global.min_txn_fee
+    global MinTxnFee
+    // smart_contracts/dualstakefarm/contract.py:319
+    // txn_fuel_spent = txn_fuel_spent + Global.min_txn_fee
+    dup
+    +
+    // smart_contracts/dualstakefarm/contract.py:322
+    // Asset(state.farm_asset.native),
+    frame_dig 0
+    dup
+    extract 0 8 // on error: Index access is out of bounds
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:323
+    // recipient_app.address,
+    frame_dig -3
+    app_params_get AppAddress
+    assert // application exists
+    // smart_contracts/dualstakefarm/contract.py:324
+    // state.amount_per_block.native,
+    dig 2
+    extract 8 8 // on error: Index access is out of bounds
+    btoi
+    // smart_contracts/dualstakefarm/contract.py:325
+    // Global.min_txn_fee,
+    global MinTxnFee
+    // smart_contracts/dualstakefarm/contract.py:320-326
+    // # pay out reward
+    // send.axfer(
+    //     Asset(state.farm_asset.native),
+    //     recipient_app.address,
+    //     state.amount_per_block.native,
+    //     Global.min_txn_fee,
+    // )
+    callsub axfer
+    // smart_contracts/dualstakefarm/contract.py:330
+    // txn_fuel_spent + Global.min_txn_fee + self.get_ix_rewards_per_block()
+    global MinTxnFee
+    uncover 2
+    +
+    // smart_contracts/dualstakefarm/contract.py:418
+    // return UInt64(IX_REWARDS_PER_BLOCK) * Global.min_txn_fee
+    intc_2 // 4
+    global MinTxnFee
+    *
+    // smart_contracts/dualstakefarm/contract.py:330
+    // txn_fuel_spent + Global.min_txn_fee + self.get_ix_rewards_per_block()
+    +
+    // smart_contracts/dualstakefarm/contract.py:328-331
+    // # send ix reward
+    // txn_fuel_spent = (
+    //     txn_fuel_spent + Global.min_txn_fee + self.get_ix_rewards_per_block()
+    // )
+    frame_bury 2
+    // smart_contracts/dualstakefarm/contract.py:332
+    // send.algo_pay(Txn.sender, self.get_ix_rewards_per_block(), Global.min_txn_fee)
+    txn Sender
+    // smart_contracts/dualstakefarm/contract.py:418
+    // return UInt64(IX_REWARDS_PER_BLOCK) * Global.min_txn_fee
+    intc_2 // 4
+    global MinTxnFee
+    *
+    // smart_contracts/dualstakefarm/contract.py:332
+    // send.algo_pay(Txn.sender, self.get_ix_rewards_per_block(), Global.min_txn_fee)
+    global MinTxnFee
+    callsub algo_pay
+    // smart_contracts/dualstakefarm/contract.py:334-335
+    // # update box state
+    // state.last_block_paid = arc4.UInt64(block_round)
+    frame_dig 1
+    replace2 24
+    // smart_contracts/dualstakefarm/contract.py:337
+    // state.remaining_duration_blocks.native - UInt64(1)
+    dup
+    extract 16 8 // on error: Index access is out of bounds
+    btoi
+    intc_0 // 1
+    -
+    // smart_contracts/dualstakefarm/contract.py:336-338
+    // state.remaining_duration_blocks = arc4.UInt64(
+    //     state.remaining_duration_blocks.native - UInt64(1)
+    // )
+    itob
+    replace2 16
+    dup
+    frame_bury 0
+    // smart_contracts/dualstakefarm/contract.py:339
+    // if state.remaining_duration_blocks == 0:
+    extract 16 8 // on error: Index access is out of bounds
+    bytec 7 // 0x0000000000000000
+    b==
+    bz payout_else_body@7
+    // smart_contracts/dualstakefarm/contract.py:340
+    // del self.farms[recipient_app]
+    frame_dig 3
+    box_del
+    pop
+
+payout_after_if_else@8:
+    // smart_contracts/dualstakefarm/contract.py:344-345
+    // # update global txn fuel state
+    // self.txn_fuel = self.txn_fuel - txn_fuel_spent
+    intc_1 // 0
+    bytec_0 // "txn_fuel"
+    app_global_get_ex
+    assert // check self.txn_fuel exists
+    frame_dig 2
+    -
+    bytec_0 // "txn_fuel"
+    swap
+    app_global_put
+    retsub
+
+payout_else_body@7:
+    // smart_contracts/dualstakefarm/contract.py:342
+    // self.farms[recipient_app] = state.copy()
+    frame_dig 3
+    frame_dig 0
+    box_put
+    b payout_after_if_else@8
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.withdraw_fees(amount: uint64) -> void:
+withdraw_fees:
+    // smart_contracts/dualstakefarm/contract.py:351-352
+    // @abimethod
+    // def withdraw_fees(self, amount: UInt64) -> None:
+    proto 1 0
+    // smart_contracts/dualstakefarm/contract.py:353
+    // self.ensure_manager_caller()
+    callsub ensure_manager_caller
+    // smart_contracts/dualstakefarm/contract.py:354
+    // locked_balance = Global.current_application_address.min_balance + self.txn_fuel
+    global CurrentApplicationAddress
+    acct_params_get AcctMinBalance
+    assert // account funded
+    intc_1 // 0
+    bytec_0 // "txn_fuel"
+    app_global_get_ex
+    assert // check self.txn_fuel exists
+    +
+    // smart_contracts/dualstakefarm/contract.py:356
+    // locked_balance + amount <= Global.current_application_address.balance,
+    frame_dig -1
+    +
+    global CurrentApplicationAddress
+    acct_params_get AcctBalance
+    assert // account funded
+    <=
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz withdraw_fees_after_if_else@3
+    // smart_contracts/dualstakefarm/contract.py:357
+    // S("ERR:OVER"),
+    pushbytes "ERR:OVER"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+withdraw_fees_after_if_else@3:
+    // smart_contracts/dualstakefarm/contract.py:360
+    // Txn.sender,
+    txn Sender
+    // smart_contracts/dualstakefarm/contract.py:359-363
+    // send.algo_pay(
+    //     Txn.sender,
+    //     amount,
+    //     UInt64(0),
+    // )
+    frame_dig -1
+    // smart_contracts/dualstakefarm/contract.py:362
+    // UInt64(0),
+    intc_1 // 0
+    // smart_contracts/dualstakefarm/contract.py:359-363
+    // send.algo_pay(
+    //     Txn.sender,
+    //     amount,
+    //     UInt64(0),
+    // )
+    callsub algo_pay
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.optout(asset: uint64) -> void:
+optout:
+    // smart_contracts/dualstakefarm/contract.py:365-366
+    // @abimethod
+    // def optout(self, asset: Asset) -> None:
+    proto 1 0
+    // smart_contracts/dualstakefarm/contract.py:367
+    // self.ensure_manager_caller()
+    callsub ensure_manager_caller
+    // smart_contracts/dualstakefarm/contract.py:369
+    // Global.current_application_address.is_opted_in(asset), S("ERR:NOT OPTED")
+    global CurrentApplicationAddress
+    frame_dig -1
+    asset_holding_get AssetBalance
+    bury 1
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz optout_after_if_else@3
+    // smart_contracts/dualstakefarm/contract.py:369
+    // Global.current_application_address.is_opted_in(asset), S("ERR:NOT OPTED")
+    pushbytes "ERR:NOT OPTED"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+optout_after_if_else@3:
+    // smart_contracts/dualstakefarm/contract.py:372
+    // asset.balance(Global.current_application_address) == 0, S("ERR:BALANCE")
+    global CurrentApplicationAddress
+    frame_dig -1
+    asset_holding_get AssetBalance
+    assert // account opted into asset
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bz optout_after_if_else@7
+    // smart_contracts/dualstakefarm/contract.py:372
+    // asset.balance(Global.current_application_address) == 0, S("ERR:BALANCE")
+    pushbytes "ERR:BALANCE"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+optout_after_if_else@7:
+    // smart_contracts/dualstakefarm/contract.py:374
+    // send.axfer_closeout(asset, self.manager, UInt64(0))
+    intc_1 // 0
+    bytec_1 // "manager"
+    app_global_get_ex
+    assert // check self.manager exists
+    // smart_contracts/common/send.py:28-34
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_receiver=receiver,
+    //     asset_amount=0,
+    //     asset_close_to=receiver,
+    //     fee=fee,
+    // ).submit()
+    itxn_begin
+    dup
+    itxn_field AssetCloseTo
+    // smart_contracts/common/send.py:31
+    // asset_amount=0,
+    intc_1 // 0
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    frame_dig -1
+    itxn_field XferAsset
+    // smart_contracts/common/send.py:28
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // smart_contracts/dualstakefarm/contract.py:374
+    // send.axfer_closeout(asset, self.manager, UInt64(0))
+    intc_1 // 0
+    itxn_field Fee
+    // smart_contracts/common/send.py:28-34
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_receiver=receiver,
+    //     asset_amount=0,
+    //     asset_close_to=receiver,
+    //     fee=fee,
+    // ).submit()
+    itxn_submit
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.update_max_duration_days(max_duration: uint64) -> void:
+update_max_duration_days:
+    // smart_contracts/dualstakefarm/contract.py:376-377
+    // @abimethod
+    // def update_max_duration_days(self, max_duration: UInt64) -> None:
+    proto 1 0
+    // smart_contracts/dualstakefarm/contract.py:378
+    // self.ensure_manager_caller()
+    callsub ensure_manager_caller
+    // smart_contracts/dualstakefarm/contract.py:379
+    // self.max_duration_days = max_duration
+    bytec 5 // "max_duration_days"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.update_min_duration_blocks(min_duration: uint64) -> void:
+update_min_duration_blocks:
+    // smart_contracts/dualstakefarm/contract.py:381-382
+    // @abimethod
+    // def update_min_duration_blocks(self, min_duration: UInt64) -> None:
+    proto 1 0
+    // smart_contracts/dualstakefarm/contract.py:383
+    // self.ensure_manager_caller()
+    callsub ensure_manager_caller
+    // smart_contracts/dualstakefarm/contract.py:384
+    // self.min_duration_blocks = min_duration
+    bytec 6 // "min_duration_blocks"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.get_state(recipient_app: uint64) -> bytes:
+get_state:
+    // smart_contracts/dualstakefarm/contract.py:386-387
+    // @abimethod(readonly=True)
+    // def get_state(self, recipient_app: Application) -> FarmState:
+    proto 1 1
+    // smart_contracts/dualstakefarm/contract.py:388
+    // return self.farms[recipient_app]
+    frame_dig -1
+    itob
+    box_get
+    assert // check self.farms entry exists
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.log_states(box_names: bytes) -> void:
+log_states:
+    // smart_contracts/dualstakefarm/contract.py:390-391
+    // @abimethod(readonly=True)
+    // def log_states(self, box_names: arc4.DynamicArray[arc4.UInt64]) -> None:
+    proto 1 0
+    intc_1 // 0
+    // smart_contracts/dualstakefarm/contract.py:392
+    // for k in urange(box_names.length):
+    frame_dig -1
+    intc_1 // 0
+    extract_uint16
+    intc_1 // 0
+
+log_states_for_header@1:
+    // smart_contracts/dualstakefarm/contract.py:392
+    // for k in urange(box_names.length):
+    frame_dig 2
+    frame_dig 1
+    <
+    bz log_states_after_for@7
+    // smart_contracts/dualstakefarm/contract.py:393
+    // box_name = cast(Application, box_names[k])
+    frame_dig -1
+    extract 2 0
+    frame_dig 2
+    pushint 8 // 8
+    *
+    pushint 8 // 8
+    extract3 // on error: Index access is out of bounds
+    dup
+    frame_bury 0
+    // smart_contracts/dualstakefarm/contract.py:394
+    // if box_name in self.farms:
+    box_len
+    bury 1
+    bz log_states_else_body@4
+    // smart_contracts/dualstakefarm/contract.py:395
+    // log(self.farms[box_name])
+    frame_dig 0
+    box_get
+    assert // check self.farms entry exists
+    log
+
+log_states_after_if_else@5:
+    // smart_contracts/dualstakefarm/contract.py:392
+    // for k in urange(box_names.length):
+    frame_dig 2
+    intc_0 // 1
+    +
+    frame_bury 2
+    b log_states_for_header@1
+
+log_states_else_body@4:
+    // smart_contracts/dualstakefarm/contract.py:397
+    // log(FarmState.from_bytes(b""))
+    bytec_3 // 0x
+    log
+    b log_states_after_if_else@5
+
+log_states_after_for@7:
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.log_block_proposers(start_round: uint64, end_round: uint64) -> void:
+log_block_proposers:
+    // smart_contracts/dualstakefarm/contract.py:399-400
+    // @abimethod(readonly=True)
+    // def log_block_proposers(self, start_round: UInt64, end_round: UInt64) -> None:
+    proto 2 0
+    // smart_contracts/dualstakefarm/contract.py:401
+    // for rnd in urange(start_round, end_round + 1):
+    frame_dig -1
+    intc_0 // 1
+    +
+    frame_dig -2
+
+log_block_proposers_for_header@1:
+    // smart_contracts/dualstakefarm/contract.py:401
+    // for rnd in urange(start_round, end_round + 1):
+    frame_dig 1
+    frame_dig 0
+    <
+    bz log_block_proposers_after_for@4
+    // smart_contracts/dualstakefarm/contract.py:402
+    // log(op.Block.blk_proposer(rnd))
+    frame_dig 1
+    dup
+    block BlkProposer
+    log
+    // smart_contracts/dualstakefarm/contract.py:401
+    // for rnd in urange(start_round, end_round + 1):
+    intc_0 // 1
+    +
+    frame_bury 1
+    b log_block_proposers_for_header@1
+
+log_block_proposers_after_for@4:
+    retsub
+
+
+// smart_contracts.dualstakefarm.contract.DualstakeFarm.ensure_manager_caller() -> void:
+ensure_manager_caller:
+    // smart_contracts/dualstakefarm/contract.py:404-405
+    // @subroutine
+    // def ensure_manager_caller(self) -> None:
+    proto 0 0
+    // smart_contracts/dualstakefarm/contract.py:406
+    // custom.ensure(Txn.sender == self.manager, S("ERR:UNAUTH"))
+    txn Sender
+    intc_1 // 0
+    bytec_1 // "manager"
+    app_global_get_ex
+    assert // check self.manager exists
+    ==
+    // smart_contracts/common/custom.py:11
+    // if not cond:
+    bnz ensure_manager_caller_after_if_else@3
+    // smart_contracts/dualstakefarm/contract.py:406
+    // custom.ensure(Txn.sender == self.manager, S("ERR:UNAUTH"))
+    pushbytes "ERR:UNAUTH"
+    // smart_contracts/common/custom.py:12
+    // log(msg)
+    log
+    // smart_contracts/common/custom.py:13
+    // op.err()
+    err
+
+ensure_manager_caller_after_if_else@3:
+    retsub
