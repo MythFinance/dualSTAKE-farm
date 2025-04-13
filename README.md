@@ -18,6 +18,8 @@ Block amount or duration in blocks can be extended by anyone.
 
 Max duration in blocks corresponds to expected block production in 45 days, according to on-chain average round time measurement & dualstake contract escrow percentage of online stake.
 
+Source code is made available under Business Source License 1.1. See `LICENSE` for details and Application [2921310717](https://lora.algokit.io/mainnet/application/2921310717) for parameters.
+
 ## SDK
 
 Typescript SDK under `projects/dualstakefarm-sdk`
