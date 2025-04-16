@@ -1,79 +1,27 @@
-# dualSTAKE Farms Contract
+# Puya optimizer bug repro
 
-This repo holds the dualSTAKE farms smart contract and SDK.
+Managed to break the puya optimizer with an empty assertion error
 
-## Design
+Could be related to the `get_tinyman_algo_price_for_asset` subroutine, as this starts building with the default optimizer if I swap its body with `return 0`
 
-One farming dispenser contract, multiple dualstake contracts
+puya builds this with optimization-level 0 (log-opt0.txt with debug, log-opt0-nodebug.txt without debug)
 
-Called manually when a dualstake contract produces a block.
+with default optimizations it results in `opt.txt`
 
-Caller is incentivized with 4x min txn fees per call.
+My algokit doctor output:
 
-It pays out the ASA farm to the contract, and optionally calls swap.
-
-Single farm set up by farm creator, immutable, no pause/withdrawals.
-
-Block amount or duration in blocks can be extended by anyone.
-
-Max duration in blocks corresponds to expected block production in 45 days, according to on-chain average round time measurement & dualstake contract escrow percentage of online stake.
-
-Source code is made available under Business Source License 1.1. See `LICENSE` for details and Application [2921310717](https://lora.algokit.io/mainnet/application/2921310717) for parameters.
-
-## SDK
-
-Typescript SDK under `projects/dualstakefarm-sdk`
-
-Published in npm as `@myth-finance/dualstake-farm-sdk`
-
-## Setup
-
-### Initial setup
-1. Clone this repository to your local machine.
-2. Ensure [Docker](https://www.docker.com/) is installed and operational. Then, install `AlgoKit` following this [guide](https://github.com/algorandfoundation/algokit-cli#install).
-3. Run `algokit project bootstrap all` in the project directory. This command sets up your environment by installing necessary dependencies, setting up a Python virtual environment, and preparing your `.env` file.
-4. In the case of a smart contract project, execute `algokit generate env-file -a target_network localnet` from the `dualstakefarm-contracts` directory to create a `.env.localnet` file with default configuration for `localnet`.
-5. To build your project, execute `algokit project run build`. This compiles your project and prepares it for running.
-6. For project-specific instructions, refer to the READMEs of the child projects:
-   - Smart Contracts: [dualstakefarm-contracts](projects/dualstakefarm-contracts/README.md)
-   - Frontend Application: [dualstakefarm-frontend](projects/dualstakefarm-frontend/README.md)
-
-> This project is structured as a monorepo, refer to the [documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/project/run.md) to learn more about custom command orchestration via `algokit project run`.
-
-### Subsequently
-
-1. If you update to the latest source code and there are new dependencies, you will need to run `algokit project bootstrap all` again.
-2. Follow step 3 above.
-
-### Continuous Integration / Continuous Deployment (CI/CD)
-
-This project uses [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions) to define CI/CD workflows, which are located in the [`.github/workflows`](./.github/workflows) folder. You can configure these actions to suit your project's needs, including CI checks, audits, linting, type checking, testing, and deployments to TestNet.
-
-For pushes to `main` branch, after the above checks pass, the following deployment actions are performed:
-  - The smart contract(s) are deployed to TestNet using [AlgoNode](https://algonode.io).
-  - The frontend application is deployed to a provider of your choice (Netlify, Vercel, etc.). See [frontend README](frontend/README.md) for more information.
-
-> Please note deployment of smart contracts is done via `algokit deploy` command which can be invoked both via CI as seen on this project, or locally. For more information on how to use `algokit deploy` please see [AlgoKit documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/deploy.md).
-
-## Tools
-
-This project makes use of Python and React to build Algorand smart contracts and to provide a base project configuration to develop frontends for your Algorand dApps and interactions with smart contracts. The following tools are in use:
-
-- Algorand, AlgoKit, and AlgoKit Utils
-- Python dependencies including Poetry, Black, Ruff or Flake8, mypy, pytest, and pip-audit
-- React and related dependencies including AlgoKit Utils, Tailwind CSS, daisyUI, use-wallet, npm, jest, playwright, Prettier, ESLint, and Github Actions workflows for build validation
-
-### VS Code
-
-It has also been configured to have a productive dev experience out of the box in [VS Code](https://code.visualstudio.com/), see the [backend .vscode](./backend/.vscode) and [frontend .vscode](./frontend/.vscode) folders for more details.
-
-## Integrating with smart contracts and application clients
-
-Refer to the [dualstakefarm-contracts](projects/dualstakefarm-contracts/README.md) folder for overview of working with smart contracts, [projects/dualstakefarm-frontend](projects/dualstakefarm-frontend/README.md) for overview of the React project and the [projects/dualstakefarm-frontend/contracts](projects/dualstakefarm-frontend/src/contracts/README.md) folder for README on adding new smart contracts from backend as application clients on your frontend. The templates provided in these folders will help you get started.
-When you compile and generate smart contract artifacts, your frontend component will automatically generate typescript application clients from smart contract artifacts and move them to `frontend/src/contracts` folder, see [`generate:app-clients` in package.json](projects/dualstakefarm-frontend/package.json). Afterwards, you are free to import and use them in your frontend application.
-
-The frontend starter also provides an example of interactions with your DualstakefarmClient in [`AppCalls.tsx`](projects/dualstakefarm-frontend/src/components/AppCalls.tsx) component by default.
-
-## Next Steps
-
-You can take this project and customize it to build your own decentralized applications on Algorand. Make sure to understand how to use AlgoKit and how to write smart contracts for Algorand before you start.
+```
+timestamp: 2025-04-16T21:21:53+00:00
+AlgoKit: 2.6.2
+AlgoKit Python: 3.12.4 (main, Jun  8 2024, 18:29:57) [GCC 11.4.0] (location: /home/bit/.local/pipx/venvs/algokit)
+OS: Linux-6.0.8-x86_64-with-glibc2.35
+docker: 27.0.3
+docker compose: 2.28.1
+git: 2.34.1
+python: 2.7.18 (location: /usr/local/bin/python)
+python3: 3.10.12 (location: /usr/bin/python3)
+pipx: 1.7.1
+poetry: 1.8.3
+node: 20.11.0
+npm: 10.2.4
+```

@@ -1,0 +1,21 @@
+Version prompt disabled
+Running 'poetry run puyapy --version' in '/home/bit/code/dualstakefarm/projects/dualstakefarm-contracts'
+poetry: puyapy 4.3.3
+Running 'poetry run puyapy /home/bit/code/dualstakefarm/projects/dualstakefarm-contracts/smart_contracts/dualstakefarm/contract.py --optimization-level=0' in '/home/bit/code/dualstakefarm/projects/dualstakefarm-contracts'
+poetry: info: Found python prefix: /home/bit/code/dualstakefarm/projects/dualstakefarm-contracts/.venv
+poetry: info: optimizing approval program of smart_contracts.dualstakefarm.contract.DualstakeFarm at level 0
+poetry: info: optimizing clear program of smart_contracts.dualstakefarm.contract.DualstakeFarm at level 0
+poetry: info: Writing smart_contracts/dualstakefarm/DualstakeFarm.arc32.json
+poetry: info: Writing smart_contracts/dualstakefarm/DualstakeFarm.approval.teal
+poetry: info: Writing smart_contracts/dualstakefarm/DualstakeFarm.clear.teal
+poetry: info: Writing smart_contracts/dualstakefarm/DualstakeFarm.approval.puya.map
+poetry: info: Writing smart_contracts/dualstakefarm/DualstakeFarm.clear.puya.map
+info: Found python prefix: /home/bit/code/dualstakefarm/projects/dualstakefarm-contracts/.venv
+info: optimizing approval program of smart_contracts.dualstakefarm.contract.DualstakeFarm at level 0
+info: optimizing clear program of smart_contracts.dualstakefarm.contract.DualstakeFarm at level 0
+info: Writing smart_contracts/dualstakefarm/DualstakeFarm.arc32.json
+info: Writing smart_contracts/dualstakefarm/DualstakeFarm.approval.teal
+info: Writing smart_contracts/dualstakefarm/DualstakeFarm.clear.teal
+info: Writing smart_contracts/dualstakefarm/DualstakeFarm.approval.puya.map
+info: Writing smart_contracts/dualstakefarm/DualstakeFarm.clear.puya.map
+
