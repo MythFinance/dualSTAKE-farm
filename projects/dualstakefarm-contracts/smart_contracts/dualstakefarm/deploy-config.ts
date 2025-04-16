@@ -19,7 +19,11 @@ export async function deploy() {
     defaultSender: deployer.addr,
   })
 
-  const { appClient, result } = await factory.deploy({ onUpdate: 'append', onSchemaBreak: 'append' })
+  const { appClient, result } = await factory.deploy({
+    createParams: { extraProgramPages: 3 },
+    onUpdate: 'replace',
+    onSchemaBreak: 'append',
+  })
 
   // If app was just created fund the app account
   if (['create', 'replace'].includes(result.operationPerformed)) {
@@ -30,5 +34,5 @@ export async function deploy() {
     })
   }
 
-  console.log("Dualstakefarm app id "+result.appId)
+  console.log('Dualstakefarm app id ' + result.appId)
 }

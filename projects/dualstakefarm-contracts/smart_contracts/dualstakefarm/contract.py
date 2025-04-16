@@ -1,11 +1,11 @@
-from typing import cast
-
 from algopy import (
+    Account,
     Application,
     ARC4Contract,
     Asset,
     BigUInt,
     BoxMap,
+    Bytes,
     Global,
     StateTotals,
     String,
@@ -22,6 +22,39 @@ from algopy.arc4 import abi_call, abimethod
 from ..common import custom, math, round_time, send, validate
 
 S = String
+B = BigUInt
+
+
+@subroutine
+def get_tm2_net_amt(amt: UInt64) -> UInt64:
+    return amt - (UInt64(30) * amt // UInt64(10000))
+
+
+@subroutine
+def get_tinyman_algo_price_for_asset(
+    tm2_app_id: UInt64,
+    tm2_lp_addr: Bytes,
+    farm_amount: UInt64,
+) -> UInt64:
+    tma = Account(tm2_lp_addr)
+    tm2 = Application(tm2_app_id)
+    aid1, exists1 = op.AppLocal.get_ex_uint64(tma, tm2, b"asset_1_id")
+    a1, exists2 = op.AppLocal.get_ex_uint64(tma, tm2, b"asset_1_reserves")
+    a2, exists3 = op.AppLocal.get_ex_uint64(tma, tm2, b"asset_2_reserves")
+    custom.ensure(exists1 and exists2 and exists3, S("ERR:TM STT"))
+    if aid1 != UInt64(0):
+        return (
+            a2
+            - UInt64(1)
+            - op.btoi((B(a1 * a2) // B(a1 + get_tm2_net_amt(farm_amount))).bytes)
+        )
+    else:
+        return (
+            a1
+            - UInt64(1)
+            - op.btoi((B(a1 * a2) // B(a2 + get_tm2_net_amt(farm_amount))).bytes)
+        )
+
 
 # required block range availability to sample avg round time. constant
 MIN_ROUND_SAMPLE = 500
@@ -34,24 +67,44 @@ DEFAULT_MIN_DURATION_BLOCKS = 30
 # bound by minimum value above
 DEFAULT_MAX_DURATION_DAYS = 45
 
-FARM_ALGO_COST_PER_BLOCK = 10  # * min_txn_fee, 3 for platform fees + ...
-TXN_FUEL_PER_BLOCK = 7  # * min_txn_fee. 2 for asa/app call, + 1 to send IX reward +
-IX_REWARDS_PER_BLOCK = 4  # caller receives 4 as IX reward
+# expressed as multiples of min txn fee
+PLATFORM_FEE_PER_BLOCK = 97  # 0.097 ALGO
+TXN_FEE_PER_BLOCK = 3  # 0.003 ALGO // 3 txns per payout: 1 farm reward axfer, 1 ds swap app call, 1 send IX reward drop
+IX_REWARDS_PER_BLOCK = (
+    100  # 0.1 ALGO // caller receives 100 min txn fees as incentivized execution reward
+)
 
 
 class AlgoCost(arc4.Struct):
-    algo_cost: arc4.UInt64
+    total_cost: arc4.UInt64
     optin_cost: arc4.UInt64
     box_cost: arc4.UInt64
-    farm_cost: arc4.UInt64
+    platform_cost: arc4.UInt64
+    ix_cost: arc4.UInt64
+    txn_fee_cost: arc4.UInt64
 
 
 class AlgoCostAndMaxDuration(arc4.Struct):
-    algo_cost: arc4.UInt64
+    total_cost: arc4.UInt64
     optin_cost: arc4.UInt64
     box_cost: arc4.UInt64
-    farm_cost: arc4.UInt64
+    platform_cost: arc4.UInt64
+    ix_cost: arc4.UInt64
+    txn_fee_cost: arc4.UInt64
     max_duration: arc4.UInt64
+
+
+class APRBreakdown(arc4.Struct):
+    balance: arc4.UInt64
+    staked: arc4.UInt64
+    current_block_bonus: arc4.UInt64
+    current_avg_block_payout: arc4.UInt64
+    current_farm_amount: arc4.UInt64
+    current_farm_amount_algo: arc4.UInt64
+    avg_round_time: arc4.UInt64
+    online_stake: arc4.UInt64
+    expected_yearly_blocks: arc4.UInt64
+    projected_apr_bps: arc4.UInt64
 
 
 class FarmState(arc4.Struct):
@@ -70,8 +123,14 @@ class DualstakeFarm(
         self.manager = Txn.sender
         self.farms = BoxMap(Application, FarmState, key_prefix=b"")
         self.txn_fuel = UInt64(0)
+        self.global_remaining_blocks = UInt64(0)
+
         self.max_duration_days = UInt64(DEFAULT_MAX_DURATION_DAYS)
         self.min_duration_blocks = UInt64(DEFAULT_MIN_DURATION_BLOCKS)
+
+        self.ix_pb = UInt64(IX_REWARDS_PER_BLOCK)
+        self.plat_fee_pb = UInt64(PLATFORM_FEE_PER_BLOCK)
+        self.txn_fee_pb = UInt64(TXN_FEE_PER_BLOCK)
 
     @arc4.baremethod(allow_actions=("UpdateApplication",))
     def update(self) -> None:
@@ -80,6 +139,65 @@ class DualstakeFarm(
     @arc4.baremethod(allow_actions=("DeleteApplication",))
     def delete(self) -> None:
         self.ensure_manager_caller()
+
+    @abimethod(readonly=True)
+    def project_apr(
+        self,
+        recipient_app_id: Application,
+        # override_farm_amount: UInt64,
+    ) -> APRBreakdown:
+        tm2_app_id, exists2 = op.AppGlobal.get_ex_uint64(
+            recipient_app_id, b"tm2_app_id"
+        )
+        tm2_lp_addr, exists3 = op.AppGlobal.get_ex_bytes(recipient_app_id, b"lp_id")
+
+        asa_id, exists1 = op.AppGlobal.get_ex_uint64(recipient_app_id, b"asa_id")
+        staked, exists4 = op.AppGlobal.get_ex_uint64(recipient_app_id, b"staked")
+        custom.ensure(exists1 and exists2 and exists3 and exists4, S("ERR:DS STT"))
+
+        # balance is staked+fees. Use this to calculate blocks (nom in % of online)
+        balance = recipient_app_id.address.balance
+        total_online_stake = BigUInt(op.online_stake())
+
+        current_block_rewards = op.Block.blk_bonus(Txn.first_valid - UInt64(1))
+        current_avg_block_payout = round_time.get_block_rewards()
+
+        rt_fraction = round_time.get_round_time(UInt64(MIN_ROUND_SAMPLE))
+        avg_round_time = UInt64(10000) * rt_fraction.dt // rt_fraction.dr
+        global_yearly_blocks_produced = BigUInt(
+            UInt64(86400) * UInt64(365) * rt_fraction.dr // rt_fraction.dt
+        )
+
+        own_yearly_blocks_produced = (
+            global_yearly_blocks_produced * balance // total_online_stake
+        )
+        farm_amount = UInt64(0)
+        if recipient_app_id in self.farms:
+            farm_amount = self.farms[recipient_app_id].amount_per_block.native
+
+        farm_amount_algo = (
+            get_tinyman_algo_price_for_asset(tm2_app_id, tm2_lp_addr, farm_amount)
+            if farm_amount > UInt64(0)
+            else UInt64(0)
+        )
+
+        rewards = (
+            current_block_rewards + farm_amount_algo
+        ) * own_yearly_blocks_produced
+        projected_apr_bps = UInt64(10000) * rewards // staked
+
+        return APRBreakdown(
+            balance=arc4.UInt64(balance),
+            staked=arc4.UInt64(staked),
+            current_block_bonus=arc4.UInt64(current_block_rewards),
+            current_avg_block_payout=arc4.UInt64(current_avg_block_payout),
+            current_farm_amount=arc4.UInt64(farm_amount),
+            current_farm_amount_algo=arc4.UInt64(farm_amount_algo),
+            avg_round_time=arc4.UInt64(avg_round_time),
+            online_stake=arc4.UInt64(total_online_stake),
+            expected_yearly_blocks=arc4.UInt64(own_yearly_blocks_produced),
+            projected_apr_bps=arc4.UInt64(projected_apr_bps),
+        )
 
     @subroutine
     def calculate_algo_cost(
@@ -90,18 +208,22 @@ class DualstakeFarm(
             if Global.current_application_address.is_opted_in(farm_asset)
             else Global.asset_opt_in_min_balance
         )
-        log(optin_mbr)
         box_mbr = (
             UInt64(0) if recipient_app in self.farms else UInt64(5 * 8 * 400 + 2500)
         )  # box size is 1+4 uint64s
-        log(box_mbr)
-        farm_costs = self.get_farm_algo_cost_per_block() * duration_blocks
-        log(farm_costs)
+
+        ix_cost = self.get_ix_rewards_per_block() * duration_blocks
+        txn_fee_cost = self.get_txn_fee_per_block() * duration_blocks
+        platform_cost = self.get_platform_fee_per_block() * duration_blocks
+        total_cost = ix_cost + txn_fee_cost + platform_cost
+
         return AlgoCost(
-            algo_cost=arc4.UInt64(optin_mbr + box_mbr + farm_costs),
-            farm_cost=arc4.UInt64(farm_costs),
+            total_cost=arc4.UInt64(total_cost),
             box_cost=arc4.UInt64(box_mbr),
             optin_cost=arc4.UInt64(optin_mbr),
+            txn_fee_cost=arc4.UInt64(txn_fee_cost),
+            ix_cost=arc4.UInt64(ix_cost),
+            platform_cost=arc4.UInt64(platform_cost),
         )
 
     @abimethod(readonly=True)
@@ -114,14 +236,14 @@ class DualstakeFarm(
     def get_algo_cost_and_max_duration(
         self, recipient_app: Application, farm_asset: Asset, duration_blocks: UInt64
     ) -> AlgoCostAndMaxDuration:
-        algo_cost_struct = self.calculate_algo_cost(
-            recipient_app, farm_asset, duration_blocks
-        )
+        cost = self.calculate_algo_cost(recipient_app, farm_asset, duration_blocks)
         return AlgoCostAndMaxDuration(
-            algo_cost=algo_cost_struct.algo_cost,
-            box_cost=algo_cost_struct.box_cost,
-            optin_cost=algo_cost_struct.optin_cost,
-            farm_cost=algo_cost_struct.farm_cost,
+            total_cost=cost.total_cost,
+            box_cost=cost.box_cost,
+            optin_cost=cost.optin_cost,
+            txn_fee_cost=cost.txn_fee_cost,
+            ix_cost=cost.ix_cost,
+            platform_cost=cost.platform_cost,
             max_duration=arc4.UInt64(self.get_max_duration(recipient_app)),
         )
 
@@ -177,7 +299,7 @@ class DualstakeFarm(
             Txn.group_index - UInt64(1),  # previous txn
             self.calculate_algo_cost(
                 recipient_app, farm_asset, duration_blocks
-            ).algo_cost.native,
+            ).total_cost.native,
         )
 
         # validate ASA deposit. positioned after app call so we can opt in if needed
@@ -210,7 +332,8 @@ class DualstakeFarm(
         )
 
         # add to global txn fuel
-        self.txn_fuel = self.txn_fuel + self.get_txn_fuel_per_block() * duration_blocks
+        self.txn_fuel = self.txn_fuel + self.get_spend_per_block() * duration_blocks
+        self.global_remaining_blocks = self.global_remaining_blocks + duration_blocks
 
     @abimethod
     def extend_duration_blocks(
@@ -228,7 +351,7 @@ class DualstakeFarm(
             Txn.group_index - UInt64(1),  # previous txn
             self.calculate_algo_cost(
                 recipient_app, farm_asset, duration_blocks
-            ).algo_cost.native,
+            ).total_cost.native,
         )
 
         validate.axfer_amount_exact(
@@ -249,7 +372,9 @@ class DualstakeFarm(
         self.farms[recipient_app] = state.copy()
 
         # adjust txn fuel remaining
-        self.txn_fuel = self.txn_fuel + self.get_txn_fuel_per_block() * duration_blocks
+        self.txn_fuel = self.txn_fuel + self.get_spend_per_block() * duration_blocks
+
+        self.global_remaining_blocks = self.global_remaining_blocks + duration_blocks
 
     @abimethod
     def extend_amount_per_block(
@@ -316,7 +441,6 @@ class DualstakeFarm(
         # subtract txn fuel regardless of call swap or not
         txn_fuel_spent = txn_fuel_spent + Global.min_txn_fee
 
-        txn_fuel_spent = txn_fuel_spent + Global.min_txn_fee
         # pay out reward
         send.axfer(
             Asset(state.farm_asset.native),
@@ -324,12 +448,13 @@ class DualstakeFarm(
             state.amount_per_block.native,
             Global.min_txn_fee,
         )
+        txn_fuel_spent = txn_fuel_spent + Global.min_txn_fee
 
         # send ix reward
+        send.algo_pay(Txn.sender, self.get_ix_rewards_per_block(), Global.min_txn_fee)
         txn_fuel_spent = (
             txn_fuel_spent + Global.min_txn_fee + self.get_ix_rewards_per_block()
         )
-        send.algo_pay(Txn.sender, self.get_ix_rewards_per_block(), Global.min_txn_fee)
 
         # update box state
         state.last_block_paid = arc4.UInt64(block_round)
@@ -343,6 +468,7 @@ class DualstakeFarm(
 
         # update global txn fuel state
         self.txn_fuel = self.txn_fuel - txn_fuel_spent
+        self.global_remaining_blocks = self.global_remaining_blocks - 1
 
     @abimethod
     def noop(self) -> None:
@@ -351,7 +477,9 @@ class DualstakeFarm(
     @abimethod
     def withdraw_fees(self, amount: UInt64) -> None:
         self.ensure_manager_caller()
-        locked_balance = Global.current_application_address.min_balance + self.txn_fuel
+        locked_balance = Global.current_application_address.min_balance + (
+            self.global_remaining_blocks * self.get_spend_per_block()
+        )
         custom.ensure(
             locked_balance + amount <= Global.current_application_address.balance,
             S("ERR:OVER"),
@@ -390,7 +518,7 @@ class DualstakeFarm(
     @abimethod(readonly=True)
     def log_states(self, box_names: arc4.DynamicArray[arc4.UInt64]) -> None:
         for k in urange(box_names.length):
-            box_name = cast(Application, box_names[k])
+            box_name = Application(box_names[k].native)
             if box_name in self.farms:
                 log(self.farms[box_name])
             else:
@@ -407,12 +535,24 @@ class DualstakeFarm(
 
     @subroutine
     def get_farm_algo_cost_per_block(self) -> UInt64:
-        return UInt64(FARM_ALGO_COST_PER_BLOCK) * Global.min_txn_fee
+        return (
+            self.get_txn_fee_per_block()
+            + self.get_ix_rewards_per_block()
+            + self.get_farm_algo_cost_per_block()
+        )
 
     @subroutine
-    def get_txn_fuel_per_block(self) -> UInt64:
-        return UInt64(TXN_FUEL_PER_BLOCK) * Global.min_txn_fee
+    def get_spend_per_block(self) -> UInt64:
+        return self.get_txn_fee_per_block() + self.get_ix_rewards_per_block()
 
     @subroutine
     def get_ix_rewards_per_block(self) -> UInt64:
-        return UInt64(IX_REWARDS_PER_BLOCK) * Global.min_txn_fee
+        return self.ix_pb * Global.min_txn_fee
+
+    @subroutine
+    def get_platform_fee_per_block(self) -> UInt64:
+        return self.plat_fee_pb * Global.min_txn_fee
+
+    @subroutine
+    def get_txn_fee_per_block(self) -> UInt64:
+        return self.txn_fee_pb * Global.min_txn_fee
