@@ -1,72 +1,78 @@
-import * as algokit from '@algorandfoundation/algokit-utils'
-import algosdk, { makeEmptyTransactionSigner } from 'algosdk'
+import * as algokit from "@algorandfoundation/algokit-utils";
+import algosdk, { makeEmptyTransactionSigner } from "algosdk";
 import {
   FarmStateFromTuple,
   FarmState as FarmStateInternal,
   DualstakeFarmClient,
   DualstakeFarmComposer,
-} from './DualstakeFarmClient.js'
+  AlgoCostAndMaxDuration,
+  AprBreakdown,
+} from "./DualstakeFarmClient.js";
 
-const TXN_VALIDITY = 8
+const TXN_VALIDITY = 8;
+
+export type DSAprBreakdown = AprBreakdown
 
 export interface FarmState extends FarmStateInternal {
-  appId: bigint
-  appEscrow: string
+  appId: bigint;
+  appEscrow: string;
 }
 
 export interface DSFarmSDKConstructor {
-  algorand: algokit.AlgorandClient
-  appId: bigint
-  sender: string
+  algorand: algokit.AlgorandClient;
+  appId: bigint;
+  sender: string;
 }
 
 export interface DSFarmCost {
-  algoCost: bigint
+  totalCost: bigint;
   details: {
-    optinCost: bigint
-    boxCost: bigint
-    farmCost: bigint
-  }
+    optinCost: bigint;
+    boxCost: bigint;
+    platformCost: bigint;
+    ixCost: bigint;
+    txnFeeCost: bigint;
+  };
 }
 
 export interface DSFarmParams extends DSFarmCost {
-  maxDuration: bigint
+  maxDuration: bigint;
 }
 
-const signer = makeEmptyTransactionSigner()
+const signer = makeEmptyTransactionSigner();
 
 export class DSFarmSDK {
-  client: DualstakeFarmClient
-  algorand: algokit.AlgorandClient
-  sender: string
+  client: DualstakeFarmClient;
+  algorand: algokit.AlgorandClient;
+  sender: string;
 
   constructor({ appId, algorand, sender }: DSFarmSDKConstructor) {
     algokit.Config.configure({
       debug: false,
       populateAppCallResources: false,
       // traceAll: true,
-    })
+    });
 
-    this.algorand = algorand
-    algorand.setSigner(sender, makeEmptyTransactionSigner())
+    this.algorand = algorand;
+    algorand.setSigner(sender, makeEmptyTransactionSigner());
 
     this.client = this.algorand.client.getTypedAppClientById(DualstakeFarmClient, {
       appId,
       defaultSender: sender,
       defaultSigner: signer,
-    })
+    });
 
-    this.sender = sender
+    this.sender = sender;
   }
 
   get appId() {
-    return this.client.appId
+    return this.client.appId;
   }
 
   async getFarms(): Promise<Map<bigint, FarmState>> {
-    const { algod } = this.client.algorand.client
-    const { boxes } = await algod.getApplicationBoxes(Number(this.appId)).do()
-    const appIds = boxes.map(({ name: n }: { name: Uint8Array }) => algosdk.decodeUint64(n, 'bigint'))
+    const { algod } = this.client.algorand.client;
+    const { boxes } = await algod.getApplicationBoxes(Number(this.appId)).do();
+    const appIds = boxes.map(({ name: n }: { name: Uint8Array }) => algosdk.decodeUint64(n, "bigint"));
 
     const { confirmations } = await this.client
       .newGroup()
@@ -81,27 +87,27 @@ export class DSFarmSDK {
         extraOpcodeBudget: 130013,
         fixSigners: true,
         allowEmptySignatures: true,
-      })
+      });
 
-    const farmStates = new Map<bigint, FarmState>()
+    const farmStates = new Map<bigint, FarmState>();
 
-    const logs = confirmations[0]!.logs ?? []
+    const logs = confirmations[0]!.logs ?? [];
     for (let idx = 0; idx < logs.length; idx++) {
-      const appId = appIds[idx]
-      const appEscrow = algosdk.getApplicationAddress(appId)
-      const method = this.client.appClient.getABIMethod('get_state')
+      const appId = appIds[idx];
+      const appEscrow = algosdk.getApplicationAddress(appId);
+      const method = this.client.appClient.getABIMethod("get_state");
       const farmState = FarmStateFromTuple(
         // @ts-ignore
-        method.returns.type.decode(logs[idx]),
-      )
+        method.returns.type.decode(logs[idx])
+      );
       farmStates.set(appId, {
         ...farmState,
         appId,
         appEscrow,
-      })
+      });
     }
 
-    return farmStates
+    return farmStates;
   }
 
   async getFarm(dsAppId: bigint): Promise<FarmState> {
@@ -119,15 +125,43 @@ export class DSFarmSDK {
         extraOpcodeBudget: 700,
         fixSigners: true,
         allowEmptySignatures: true,
-      })
+      });
 
-    const internalState = returns[0]!
+    const internalState = returns[0]!;
 
     return {
       ...internalState,
       appId: dsAppId,
       appEscrow: algosdk.getApplicationAddress(dsAppId),
-    }
+    };
+  }
+
+  async getProjectedAPR({
+    dsAppId: recipientApp,
+    overrideFarmAmount,
+  }: {
+    dsAppId: bigint;
+    overrideFarmAmount: bigint;
+  }): Promise<DSAprBreakdown> {
+    const {
+      returns: [projectedApr],
+    } = await this.client
+      .newGroup()
+      .projectApr({
+        args: {
+          recipientApp,
+          overrideFarmAmount,
+        },
+        validityWindow: 2,
+      })
+      .simulate({
+        extraOpcodeBudget: 7000,
+        allowUnnamedResources: true,
+        fixSigners: true,
+        allowEmptySignatures: true,
+      });
+
+    return projectedApr!;
   }
 
   async getFarmParams({
@@ -135,9 +169,9 @@ export class DSFarmSDK {
     farmAssetId,
     durationBlocks,
   }: {
-    dsAppId: bigint
-    farmAssetId: bigint
-    durationBlocks: bigint
+    dsAppId: bigint;
+    farmAssetId: bigint;
+    durationBlocks: bigint;
   }): Promise<DSFarmParams> {
     const {
       returns: [algoCostStruct],
@@ -155,10 +189,10 @@ export class DSFarmSDK {
         allowUnnamedResources: true,
         fixSigners: true,
         allowEmptySignatures: true,
-      })
+      });
 
-    const { algoCost, optinCost, boxCost, farmCost, maxDuration } = algoCostStruct!
-    return { algoCost: algoCost, maxDuration, details: { optinCost, boxCost, farmCost } }
+    const { totalCost, maxDuration, ...rest } = algoCostStruct!;
+    return { totalCost, maxDuration, details: { ...rest } };
   }
 
   async getFarmCreationCost({
@@ -166,9 +200,9 @@ export class DSFarmSDK {
     farmAssetId,
     durationBlocks,
   }: {
-    dsAppId: bigint
-    farmAssetId: bigint
-    durationBlocks: bigint
+    dsAppId: bigint;
+    farmAssetId: bigint;
+    durationBlocks: bigint;
   }): Promise<DSFarmCost> {
     const {
       returns: [algoCostStruct],
@@ -185,11 +219,11 @@ export class DSFarmSDK {
         allowUnnamedResources: true,
         fixSigners: true,
         allowEmptySignatures: true,
-      })
+      });
 
-    const { algoCost, optinCost, boxCost, farmCost } = algoCostStruct!
+    const { totalCost, ...details } = algoCostStruct!;
 
-    return { algoCost: algoCost!, details: { optinCost, boxCost, farmCost } }
+    return { totalCost, details };
   }
 
   async makeCreateFarmTransactions({
@@ -198,27 +232,27 @@ export class DSFarmSDK {
     amountPerBlock,
     farmAssetId,
   }: {
-    dsAppId: bigint
-    durationBlocks: bigint
-    amountPerBlock: bigint
-    farmAssetId: bigint
+    dsAppId: bigint;
+    durationBlocks: bigint;
+    amountPerBlock: bigint;
+    farmAssetId: bigint;
   }): Promise<algosdk.EncodedTransaction[]> {
-    const { algoCost, maxDuration } = await this.getFarmParams({
+    const { totalCost, maxDuration } = await this.getFarmParams({
       dsAppId,
       farmAssetId,
       durationBlocks,
-    })
+    });
 
     if (durationBlocks > maxDuration) {
-      throw new Error(`Duration (${durationBlocks} blocks) exceeds current allowed duration (${maxDuration} blocks)`)
+      throw new Error(`Duration (${durationBlocks} blocks) exceeds current allowed duration (${maxDuration} blocks)`);
     }
 
     await this.algorand.createTransaction.payment({
       sender: this.sender,
       receiver: this.client.appAddress,
-      amount: algoCost!.microAlgo(),
+      amount: totalCost!.microAlgo(),
       signer,
-    })
+    });
 
     const composer = await this.client
       .newGroup()
@@ -226,10 +260,10 @@ export class DSFarmSDK {
         await this.algorand.createTransaction.payment({
           sender: this.sender,
           receiver: this.client.appAddress,
-          amount: algoCost!.microAlgo(),
+          amount: totalCost!.microAlgo(),
           signer,
         }),
-        signer,
+        signer
       )
       .createFarm({
         args: {
@@ -251,19 +285,17 @@ export class DSFarmSDK {
           amount: durationBlocks * amountPerBlock,
           signer,
         }),
-        signer,
+        signer
       )
-      .composer()
+      .composer();
 
-    const { transactions: ts } = await composer.buildTransactions()
-    const transactions = algosdk.assignGroupID(
-      ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())),
-    )
-    return transactions.map((t) => t.get_obj_for_encoding())
+    const { transactions: ts } = await composer.buildTransactions();
+    const transactions = algosdk.assignGroupID(ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())));
+    return transactions.map((t) => t.get_obj_for_encoding());
   }
 
   async makeExtendFarmAmountTransactions({ dsAppId, amountPerBlock }: { dsAppId: bigint; amountPerBlock: bigint }) {
-    const { farmAsset: farmAssetId, remainingDurationBlocks: durationBlocks } = await this.getFarm(dsAppId)
+    const { farmAsset: farmAssetId, remainingDurationBlocks: durationBlocks } = await this.getFarm(dsAppId);
 
     const composer = await this.client
       .newGroup()
@@ -284,37 +316,29 @@ export class DSFarmSDK {
           assetId: farmAssetId,
           amount: durationBlocks * amountPerBlock,
           signer,
-        }),
+        })
       )
-      .composer()
+      .composer();
 
-    const { transactions: ts } = await composer.buildTransactions()
-    const transactions = algosdk.assignGroupID(
-      ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())),
-    )
-    return transactions.map((t) => t.get_obj_for_encoding())
+    const { transactions: ts } = await composer.buildTransactions();
+    const transactions = algosdk.assignGroupID(ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())));
+    return transactions.map((t) => t.get_obj_for_encoding());
   }
 
-  async makeExtendFarmDurationTransactions({
-    dsAppId,
-    extendDurationInBlocks,
-  }: {
-    dsAppId: bigint
-    extendDurationInBlocks: bigint
-  }) {
-    const farmState = await this.getFarm(dsAppId)
-    const { farmAsset: farmAssetId, remainingDurationBlocks } = farmState
+  async makeExtendFarmDurationTransactions({ dsAppId, extendDurationInBlocks }: { dsAppId: bigint; extendDurationInBlocks: bigint }) {
+    const farmState = await this.getFarm(dsAppId);
+    const { farmAsset: farmAssetId, remainingDurationBlocks } = farmState;
 
-    const { algoCost, maxDuration } = await this.getFarmParams({
+    const { totalCost, maxDuration } = await this.getFarmParams({
       dsAppId,
       farmAssetId,
       durationBlocks: extendDurationInBlocks,
-    })
+    });
 
     if (remainingDurationBlocks + extendDurationInBlocks > maxDuration) {
       throw new Error(
-        `Duration (extending ${extendDurationInBlocks} blocks, existing ${remainingDurationBlocks}) exceeds current allowed duration (${maxDuration} blocks)`,
-      )
+        `Duration (extending ${extendDurationInBlocks} blocks, existing ${remainingDurationBlocks}) exceeds current allowed duration (${maxDuration} blocks)`
+      );
     }
 
     const composer = await this.client
@@ -323,9 +347,9 @@ export class DSFarmSDK {
         await this.algorand.createTransaction.payment({
           sender: this.sender,
           receiver: this.client.appAddress,
-          amount: algoCost!.microAlgo(),
+          amount: totalCost!.microAlgo(),
           signer,
-        }),
+        })
       )
       .extendDurationBlocks({
         args: {
@@ -345,15 +369,13 @@ export class DSFarmSDK {
           assetId: farmAssetId,
           amount: extendDurationInBlocks * farmState.amountPerBlock,
           signer,
-        }),
+        })
       )
-      .composer()
+      .composer();
 
-    const { transactions: ts } = await composer.buildTransactions()
-    const transactions = algosdk.assignGroupID(
-      ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())),
-    )
-    return transactions.map((t) => t.get_obj_for_encoding())
+    const { transactions: ts } = await composer.buildTransactions();
+    const transactions = algosdk.assignGroupID(ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())));
+    return transactions.map((t) => t.get_obj_for_encoding());
   }
 
   async makePayoutTransactions({
@@ -365,24 +387,24 @@ export class DSFarmSDK {
 
     txnValidity = TXN_VALIDITY,
   }: {
-    listing: { appId: bigint; asaId: bigint }
-    dsState: { tinymanAppId: bigint; lpId: string }
-    blockRound: number
-    lastRound: number
-    callSwap: boolean
-    txnValidity?: number
+    listing: { appId: bigint; asaId: bigint };
+    dsState: { tinymanAppId: bigint; lpId: string };
+    blockRound: number;
+    lastRound: number;
+    callSwap: boolean;
+    txnValidity?: number;
   }) {
     if (lastRound - blockRound >= 999) {
-      throw new Error(`Too late - now: ${lastRound}, block: ${blockRound}, delta: ${blockRound - lastRound}`)
+      throw new Error(`Too late - now: ${lastRound}, block: ${blockRound}, delta: ${blockRound - lastRound}`);
     }
-    const firstValidRound = BigInt(blockRound + 1)
-    let lastValidRound = BigInt(lastRound + txnValidity)
+    const firstValidRound = BigInt(blockRound + 1);
+    let lastValidRound = BigInt(lastRound + txnValidity);
     if (lastValidRound - firstValidRound > 998) {
-      lastValidRound = firstValidRound + BigInt(998)
+      lastValidRound = firstValidRound + BigInt(998);
     }
 
-    const dsAppId = listing.appId
-    const farmAssetId = listing.asaId
+    const dsAppId = listing.appId;
+    const farmAssetId = listing.asaId;
 
     const composer = await this.client
       .newGroup()
@@ -403,13 +425,11 @@ export class DSFarmSDK {
         sender: this.sender,
         signer,
       })
-      .composer()
+      .composer();
 
-    const { transactions: ts } = await composer.buildTransactions()
-    const transactions = algosdk.assignGroupID(
-      ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())),
-    )
-    return transactions.map((t) => t.get_obj_for_encoding())
+    const { transactions: ts } = await composer.buildTransactions();
+    const transactions = algosdk.assignGroupID(ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())));
+    return transactions.map((t) => t.get_obj_for_encoding());
   }
 
   async makePayoutsTransactions({
@@ -421,32 +441,32 @@ export class DSFarmSDK {
 
     txnValidity = TXN_VALIDITY,
   }: {
-    listing: { appId: bigint; asaId: bigint }
-    dsState: { tinymanAppId: bigint; lpId: string }
-    blockRounds: number[]
-    lastRound: number
-    callSwap: boolean
-    txnValidity?: number
+    listing: { appId: bigint; asaId: bigint };
+    dsState: { tinymanAppId: bigint; lpId: string };
+    blockRounds: number[];
+    lastRound: number;
+    callSwap: boolean;
+    txnValidity?: number;
   }) {
-    const blockRounds = br.sort()
+    const blockRounds = br.sort();
     if (blockRounds.length > 15) {
-      throw new Error('Too many block rounds, max 15')
+      throw new Error("Too many block rounds, max 15");
     }
-    const firstBlockRound = blockRounds[0]
-    const lastBlockRound = blockRounds[blockRounds.length - 1]
+    const firstBlockRound = blockRounds[0];
+    const lastBlockRound = blockRounds[blockRounds.length - 1];
     if (lastRound - firstBlockRound >= 999) {
-      throw new Error(`Too late - now: ${lastRound}, block: ${firstBlockRound}, delta: ${firstBlockRound - lastRound}`)
+      throw new Error(`Too late - now: ${lastRound}, block: ${firstBlockRound}, delta: ${firstBlockRound - lastRound}`);
     }
-    const firstValidRound = BigInt(lastBlockRound + 1)
-    let lastValidRound = BigInt(lastRound + txnValidity)
+    const firstValidRound = BigInt(lastBlockRound + 1);
+    let lastValidRound = BigInt(lastRound + txnValidity);
     if (lastValidRound - firstValidRound > 998) {
-      lastValidRound = firstValidRound + BigInt(998)
+      lastValidRound = firstValidRound + BigInt(998);
     }
 
-    const dsAppId = listing.appId
-    const farmAssetId = listing.asaId
-    const fees = 1000 + blockRounds.length * 1000
-    let composer = this.client.newGroup().noop()
+    const dsAppId = listing.appId;
+    const farmAssetId = listing.asaId;
+    const fees = 1000 + blockRounds.length * 1000;
+    let composer = this.client.newGroup().noop();
 
     for (let i = 0; i < blockRounds.length; i++) {
       composer = composer.payout({
@@ -463,13 +483,11 @@ export class DSFarmSDK {
         firstValidRound,
         lastValidRound,
         signer,
-      }) as unknown as DualstakeFarmComposer<[void | undefined]>
+      }) as unknown as DualstakeFarmComposer<[void | undefined]>;
     }
-    const { transactions: ts } = await (await composer.composer()).buildTransactions()
-    const transactions = algosdk.assignGroupID(
-      ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())),
-    )
-    return transactions.map((t) => t.get_obj_for_encoding())
+    const { transactions: ts } = await (await composer.composer()).buildTransactions();
+    const transactions = algosdk.assignGroupID(ts.map((t) => algosdk.Transaction.from_obj_for_encoding(t.get_obj_for_encoding())));
+    return transactions.map((t) => t.get_obj_for_encoding());
   }
 
   async getBlockProposers({ start, end, lastRound: simRound }: { start: bigint; end: bigint; lastRound: bigint }) {
@@ -492,14 +510,14 @@ export class DSFarmSDK {
         fixSigners: true,
         allowEmptySignatures: true,
         extraOpcodeBudget: 170_000,
-      })
+      });
 
-    const props: [bigint, string][] = []
+    const props: [bigint, string][] = [];
     for (let i = start; i <= end; i++) {
-      const prop = algosdk.encodeAddress(logs![Number(i - start)])
-      props.push([i, prop])
+      const prop = algosdk.encodeAddress(logs![Number(i - start)]);
+      props.push([i, prop]);
     }
 
-    return props
+    return props;
   }
 }
