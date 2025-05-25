@@ -91,6 +91,27 @@ class FarmState(arc4.Struct):
     last_block_paid: arc4.UInt64
 
 
+class FarmStateAndAPR(arc4.Struct):
+    balance: arc4.UInt64
+    staked: arc4.UInt64
+    current_block_bonus: arc4.UInt64
+    current_avg_block_payout: arc4.UInt64
+    current_farm_amount: arc4.UInt64
+    current_farm_amount_algo: arc4.UInt64
+    override_farm_amount: arc4.UInt64
+    override_farm_amount_algo: arc4.UInt64
+    avg_round_time: arc4.UInt64
+    online_stake: arc4.UInt64
+    expected_yearly_blocks: arc4.UInt64
+    base_apr_bps: arc4.UInt64
+    farm_apr_bps: arc4.UInt64
+    override_farm_apr_bps: arc4.UInt64
+    farm_asset: arc4.UInt64
+    amount_per_block: arc4.UInt64
+    remaining_duration_blocks: arc4.UInt64
+    last_block_paid: arc4.UInt64
+
+
 class DualstakeFarm(
     ARC4Contract,
     avm_version=11,
@@ -141,11 +162,9 @@ class DualstakeFarm(
             ret = a1 - self.calc_tm_denom(a1, a2, a2, farm_amount) - UInt64(1)
         return ret
 
-    @abimethod(readonly=True)
-    def project_apr(
-        self,
-        recipient_app: Application,
-        override_farm_amount: UInt64,
+    @subroutine
+    def _project_apr(
+        self, recipient_app: Application, override_farm_amount: UInt64
     ) -> APRBreakdown:
         tm2_app_id, exists2 = op.AppGlobal.get_ex_uint64(recipient_app, b"tm2_app_id")
         tm2_lp_addr, exists3 = op.AppGlobal.get_ex_bytes(recipient_app, b"lp_id")
@@ -192,13 +211,21 @@ class DualstakeFarm(
         )
 
         base_rewards = (current_block_rewards) * own_yearly_blocks_produced
-        base_apr_bps = UInt64(10000) * base_rewards // staked
+        base_apr_bps = (
+            UInt64(10000) * base_rewards // staked if staked > UInt64(0) else BigUInt(0)
+        )
 
         farm_rewards = (farm_amount_algo) * own_yearly_blocks_produced
-        farm_apr_bps = UInt64(10000) * farm_rewards // staked
+        farm_apr_bps = (
+            UInt64(10000) * farm_rewards // staked if staked > UInt64(0) else BigUInt(0)
+        )
 
         override_farm_rewards = (override_farm_amount_algo) * own_yearly_blocks_produced
-        override_farm_apr_bps = UInt64(10000) * override_farm_rewards // staked
+        override_farm_apr_bps = (
+            (UInt64(10000) * override_farm_rewards // staked)
+            if staked > UInt64(0)
+            else BigUInt(0)
+        )
 
         return APRBreakdown(
             balance=arc4.UInt64(balance),
@@ -216,6 +243,14 @@ class DualstakeFarm(
             farm_apr_bps=arc4.UInt64(farm_apr_bps),
             override_farm_apr_bps=arc4.UInt64(override_farm_apr_bps),
         )
+
+    @abimethod(readonly=True)
+    def project_apr(
+        self,
+        recipient_app: Application,
+        override_farm_amount: UInt64,
+    ) -> APRBreakdown:
+        return self._project_apr(recipient_app, override_farm_amount)
 
     @subroutine
     def calculate_algo_cost(
@@ -539,6 +574,50 @@ class DualstakeFarm(
                 log(self.farms[box_name])
             else:
                 log(FarmState.from_bytes(b""))
+
+    @subroutine
+    def _get_state_and_apr(self, app_id: UInt64) -> FarmStateAndAPR:
+        box_name = Application(app_id)
+        state = (
+            self.farms[box_name]
+            if box_name in self.farms
+            else FarmState(
+                farm_asset=arc4.UInt64(0),
+                amount_per_block=arc4.UInt64(0),
+                last_block_paid=arc4.UInt64(0),
+                remaining_duration_blocks=arc4.UInt64(0),
+            )
+        )
+        apr = self._project_apr(Application(app_id), UInt64(9000000))
+        return FarmStateAndAPR(
+            balance=apr.balance,
+            staked=apr.staked,
+            current_block_bonus=apr.current_block_bonus,
+            current_avg_block_payout=apr.current_avg_block_payout,
+            current_farm_amount=apr.current_farm_amount,
+            current_farm_amount_algo=apr.current_farm_amount_algo,
+            override_farm_amount=apr.override_farm_amount,
+            override_farm_amount_algo=apr.override_farm_amount_algo,
+            avg_round_time=apr.avg_round_time,
+            online_stake=apr.online_stake,
+            expected_yearly_blocks=apr.expected_yearly_blocks,
+            base_apr_bps=apr.base_apr_bps,
+            farm_apr_bps=apr.farm_apr_bps,
+            override_farm_apr_bps=apr.override_farm_apr_bps,
+            farm_asset=state.farm_asset,
+            amount_per_block=state.amount_per_block,
+            remaining_duration_blocks=state.remaining_duration_blocks,
+            last_block_paid=state.last_block_paid,
+        )
+
+    @abimethod(readonly=True)
+    def get_state_and_apr(self, app_id: arc4.UInt64) -> FarmStateAndAPR:
+        return self._get_state_and_apr(app_id.native)
+
+    @abimethod(readonly=True)
+    def log_states_and_aprs(self, app_ids: arc4.DynamicArray[arc4.UInt64]) -> None:
+        for k in urange(app_ids.length):
+            log(self._get_state_and_apr(app_ids[k].native))
 
     @abimethod(readonly=True)
     def log_block_proposers(self, start_round: UInt64, end_round: UInt64) -> None:

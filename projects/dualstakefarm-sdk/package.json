@@ -1,7 +1,7 @@
 {
   "name": "@myth-finance/dualstake-farm-sdk",
   "type": "module",
-  "version": "0.2.1",
+  "version": "0.2.7",
   "description": "dualSTAKE Farm SDK",
   "main": "dist/index.js",
   "exports": {
@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "prePublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "prebuild": "npx --yes  @algorandfoundation/algokit-client-generator generate -a ../dualstakefarm-contracts/smart_contracts/artifacts/dualstakefarm/DualstakeFarm.arc32.json -o src/DualstakeFarmClient.ts ",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"

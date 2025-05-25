@@ -2,21 +2,28 @@ import * as algokit from "@algorandfoundation/algokit-utils";
 import algosdk, { makeEmptyTransactionSigner } from "algosdk";
 import {
   FarmStateFromTuple,
+  FarmStateAndAprFromTuple,
   FarmState as FarmStateInternal,
   DualstakeFarmClient,
   DualstakeFarmComposer,
-  AlgoCostAndMaxDuration,
   AprBreakdown,
 } from "./DualstakeFarmClient.js";
 
 const TXN_VALIDITY = 8;
 
-export type DSAprBreakdown = AprBreakdown
+export type DSAprBreakdown = AprBreakdown;
 
-export interface FarmState extends FarmStateInternal {
+type FarmIDs = {
   appId: bigint;
   appEscrow: string;
-}
+};
+
+export type FarmState = FarmIDs & FarmStateInternal;
+
+export type FarmStateAndAPR = FarmState &
+  AprBreakdown & {
+    remainingDurationSec: bigint;
+  };
 
 export interface DSFarmSDKConstructor {
   algorand: algokit.AlgorandClient;
@@ -104,6 +111,51 @@ export class DSFarmSDK {
         ...farmState,
         appId,
         appEscrow,
+      });
+    }
+
+    return farmStates;
+  }
+
+  async getFarmsAndAPR(appIds: bigint[]): Promise<Map<bigint, FarmStateAndAPR>> {
+    const {
+      confirmations,
+    } = await this.client
+      .newGroup()
+      .logStatesAndAprs({
+        args: {
+          appIds,
+        },
+      })
+      .simulate({
+        allowMoreLogging: true,
+        allowUnnamedResources: true,
+        extraOpcodeBudget: 170000,
+        fixSigners: true,
+        allowEmptySignatures: true,
+      });
+
+    const farmStates = new Map<bigint, FarmStateAndAPR>();
+
+    const logs = confirmations[0]!.logs ?? [];
+    for (let idx = 0; idx < logs.length; idx++) {
+      const appId = appIds[idx];
+      const appEscrow = algosdk.getApplicationAddress(appId);
+      const method = this.client.appClient.getABIMethod("get_state_and_apr");
+      const farmState = FarmStateAndAprFromTuple(
+        // @ts-ignore
+        method.returns.type.decode(logs[idx])
+      );
+      const percentStake = Number(farmState.staked) / Number(farmState.onlineStake);
+      const blockInterval = !farmState.staked ? 0 : Number(farmState.avgRoundTime) / 10000 / percentStake;
+      const remainingDurationSec = !farmState.staked
+        ? BigInt(0)
+        : BigInt(Math.round(Number(farmState.remainingDurationBlocks) * blockInterval));
+      farmStates.set(appId, {
+        ...farmState,
+        appId,
+        appEscrow,
+        remainingDurationSec,
       });
     }
 
